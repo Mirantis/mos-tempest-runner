@@ -1,0 +1,7 @@
+AUTHORS
+ChangeLog
+*.pyc
+*.log
+*.egg*
+.tox
+dist
