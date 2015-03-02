@@ -8,7 +8,6 @@ install_system_requirements() {
     yum -y reinstall centos-release
 
     message "Installing system requirements"
-    yum -y install git
     yum -y install gcc
     yum -y install zlib-devel
     yum -y install readline-devel
@@ -20,7 +19,7 @@ install_system_requirements() {
     yum -y install libxslt-devel
 }
 
-install_python27_pip_tox_virtualenv() {
+install_python27_pip_virtualenv() {
     message "Installing Python 2.7"
     if command -v python2.7 &>/dev/null; then
         message "Python 2.7 already installed!"
@@ -32,14 +31,13 @@ install_python27_pip_tox_virtualenv() {
         cd Python-${PYTHON_VERSION}
         ./configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
         make -j5 altinstall
-    fi
 
-    message "Installing pip, tox and virtualenv for Python 2.7"
-    local get_pip_file="$(mktemp)"
-    wget -O ${get_pip_file} ${PIP_LOCATION}
-    python2.7 ${get_pip_file}
-    pip2.7 install -U tox
-    pip2.7 install -U virtualenv
+        message "Installing pip and virtualenv for Python 2.7"
+        local get_pip_file="$(mktemp)"
+        wget -O ${get_pip_file} ${PIP_LOCATION}
+        python2.7 ${get_pip_file}
+        pip2.7 install tox
+    fi
 }
 
 init_cluster_variables() {
@@ -170,6 +168,7 @@ install_helpers() {
     cp ${TOP_DIR}/helpers/subunit_shouldfail_filter.py ${VIRTUALENV_DIR}/bin/subunit-shouldfail-filter
     cp ${TOP_DIR}/helpers/subunit_html.py ${VIRTUALENV_DIR}/bin/subunit-html
     cp ${TOP_DIR}/helpers/colorizer.py ${VIRTUALENV_DIR}/bin/colorizer
+    ${VIRTUALENV_DIR}/bin/pip install -r ${TOP_DIR}/requirements.txt
 }
 
 prepare_cloud() {
@@ -208,7 +207,7 @@ prepare_cloud() {
 
 main() {
     install_system_requirements
-    install_python27_pip_tox_virtualenv
+    install_python27_pip_virtualenv
     init_cluster_variables
     configure_env
     setup_virtualenv
