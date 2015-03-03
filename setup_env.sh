@@ -36,7 +36,7 @@ install_python27_pip_virtualenv() {
         local get_pip_file="$(mktemp)"
         wget -O ${get_pip_file} ${PIP_LOCATION}
         python2.7 ${get_pip_file}
-        pip2.7 install tox
+        pip2.7 install -U tox
     fi
 }
 
@@ -168,7 +168,7 @@ install_helpers() {
     cp ${TOP_DIR}/helpers/subunit_shouldfail_filter.py ${VIRTUALENV_DIR}/bin/subunit-shouldfail-filter
     cp ${TOP_DIR}/helpers/subunit_html.py ${VIRTUALENV_DIR}/bin/subunit-html
     cp ${TOP_DIR}/helpers/colorizer.py ${VIRTUALENV_DIR}/bin/colorizer
-    ${VIRTUALENV_DIR}/bin/pip install -r ${TOP_DIR}/requirements.txt
+    ${VIRTUALENV_DIR}/bin/pip install -U -r ${TOP_DIR}/requirements.txt
 }
 
 prepare_cloud() {
