@@ -12,5 +12,4 @@ Installation and Usage
 4. Go into "mos-tempest-runner" directory.
 5. Execute `./setup_env.sh`.
 6. Execute `./rejoin.sh`.
-7. Execute `./run_tests tempest.your.tests`.
-
+7. Execute `run_tests <path.to.tests>`.
