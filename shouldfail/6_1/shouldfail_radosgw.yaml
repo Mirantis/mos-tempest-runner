@@ -11,6 +11,8 @@
     Fail because of https://bugs.launchpad.net/mos/+bug/1419031
 
 # Orchestration
+- setUpClass (tempest.api.orchestration.stacks.test_neutron_resources.NeutronResourcesTestJSON):
+    Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue
 - setUpClass (tempest.api.orchestration.stacks.test_templates.TemplateAWSTestJSON):
     Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue
 - setUpClass (tempest.api.orchestration.stacks.test_templates.TemplateYAMLTestJSON):

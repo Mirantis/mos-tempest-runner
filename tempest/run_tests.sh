@@ -3,7 +3,7 @@
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/init_env_variables.sh
 
-SERIAL="${SERIAL:-0}"
+SERIAL="${SERIAL:-false}"
 
 display_help() {
     echo "This script runs Tempest tests"
@@ -66,9 +66,9 @@ run_tests() {
 
     SUBUNIT_STREAM=$(cat .testrepository/next-stream)
 
-    local testr_params=""
-    if [ ${SERIAL} -eq 0 ]; then
-        testr_params="--parallel"
+    local testr_params="--parallel"
+    if [ "${SERIAL}" = "true" ]; then
+        testr_params=""
     fi
     choose_shouldfail_file
     testr run ${testr_params} --subunit ${TESTARGS} | subunit-1to2 | ${TOP_DIR}/subunit-shouldfail-filter --shouldfail-file=${SHOULDFAIL_FILE} | subunit-2to1 | ${TOP_DIR}/colorizer
