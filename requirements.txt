@@ -1,1 +1,2 @@
+python-neutronclient>=2.3.11,<3
 python-novaclient>=2.18.0,!=2.21.0
