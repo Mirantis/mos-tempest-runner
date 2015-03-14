@@ -1,5 +1,6 @@
-MOS-Tempest-Runner - Toolkit to run Tempest against Mirantis OpenStack
-======================================================================
+MOS-Tempest-Runner
+==================
+Toolkit to run Tempest against Mirantis OpenStack
 
 Installation and Usage
 ----------------------
