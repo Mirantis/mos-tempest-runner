@@ -22,7 +22,7 @@ init_some_config_options() {
     IMAGE_REF="$(glance image-list --name TestVM | grep TestVM | awk '{print $2}')"
 
     OS_EC2_URL="$(keystone catalog --service ec2 | grep publicURL | awk '{print $4}')"
-
+    OS_S3_URL="$(keystone catalog --service s3 | grep publicURL | awk '{print $4}')"
     OS_DASHBOARD_URL=${OS_AUTH_URL/:5000\/v2.0/\/horizon\/}
     local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
     if [ ${controller_os} = "CentOS" ]; then
@@ -52,6 +52,8 @@ log_file = tempest.log
 
 [boto]
 ec2_url = ${OS_EC2_URL}
+s3_url = ${OS_S3_URL}
+http_socket_timeout = 30
 
 [cli]
 cli_dir = ${DEST}/.venv/bin
