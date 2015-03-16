@@ -6,10 +6,6 @@
 - tempest.api.compute.servers.test_servers_negative.ServersNegativeTestJSON.test_shelve_shelved_server[gate,negative]:
     Fail because of https://bugs.launchpad.net/mos/+bug/1423651
 
-# Keystone
-- tempest.api.identity.admin.v3.test_services.ServicesTestJSON.test_create_update_get_service[gate,smoke]:
-    Fail because of https://bugs.launchpad.net/mos/+bug/1419031
-
 # Orchestration
 - setUpClass (tempest.api.orchestration.stacks.test_neutron_resources.NeutronResourcesTestJSON):
     Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue

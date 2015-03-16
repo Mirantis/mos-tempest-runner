@@ -1,7 +1,3 @@
-# Keystone
-- tempest.api.identity.admin.v3.test_services.ServicesTestJSON.test_create_update_get_service[gate,id-5193aad5-bcb7-411d-85b0-b3b61b96ef06,smoke]:
-    Fail because of https://bugs.launchpad.net/mos/+bug/1419031
-
 # Orchestration
 - setUpClass (tempest.api.orchestration.stacks.test_neutron_resources.NeutronResourcesTestJSON):
     Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue
