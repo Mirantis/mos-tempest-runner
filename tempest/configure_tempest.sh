@@ -15,7 +15,7 @@ check_service_availability() {
 init_some_config_options() {
     IS_NEUTRON_AVAILABLE=$(check_service_availability "neutron")
     if [ ${IS_NEUTRON_AVAILABLE} = "true" ]; then
-        PUBLIC_NETWORK_ID="$(neutron net-list --router:external=True -f csv -c id --quote none | tail -1)"
+        PUBLIC_NETWORK_ID="$(neutron net-list --router:external=true -f csv -c id --quote none | tail -1)"
         PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none | tail -1)"
     fi
 
@@ -70,11 +70,11 @@ image_alt_ssh_user = cirros
 fixed_network_name=net04
 network_for_ssh=net04_ext
 build_timeout = 300
-allow_tenant_isolation = True
+allow_tenant_isolation = true
 
 [compute-feature-enabled]
 live_migration = false
-resize = True
+resize = true
 vnc_console = true
 
 [dashboard]

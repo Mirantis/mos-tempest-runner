@@ -188,13 +188,11 @@ prepare_cloud() {
     keystone tenant-create --name demo || true
     keystone user-create --tenant demo --name demo --pass demo || true
 
-    keystone role-create --name Member || true
     keystone role-create --name SwiftOperator || true
-    keystone role-create --name ResellerAdmin || true
     keystone role-create --name anotherrole || true
+    keystone role-create --name ResellerAdmin || true
     keystone role-create --name heat_stack_user || true
 
-    keystone user-role-add --role Member --user demo --tenant demo || true
     keystone user-role-add --role SwiftOperator --user demo --tenant demo || true
     keystone user-role-add --role anotherrole --user demo --tenant demo || true
     keystone user-role-add --role admin --user admin --tenant demo || true
