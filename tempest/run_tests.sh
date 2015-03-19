@@ -79,6 +79,7 @@ collect_results() {
         local subunit="$(mktemp)"
         subunit-1to2 < .testrepository/${SUBUNIT_STREAM} | ${TOP_DIR}/subunit-shouldfail-filter --shouldfail-file=${SHOULDFAIL_FILE} > ${subunit}
         ${TOP_DIR}/subunit-html < ${subunit} > ${TEMPEST_REPORTS_DIR}/tempest-report.html
+        subunit2junitxml < ${subunit} > ${TEMPEST_REPORTS_DIR}/tempest-report.xml
         cp ${DEST}/tempest/etc/tempest.conf ${TEMPEST_REPORTS_DIR}/
         cat ${SHOULDFAIL_FILE} > ${TEMPEST_REPORTS_DIR}/shouldfail.yaml
     else
