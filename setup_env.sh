@@ -8,6 +8,7 @@ install_system_requirements() {
     yum -y reinstall centos-release
 
     message "Installing system requirements"
+    yum -y install git
     yum -y install gcc
     yum -y install zlib-devel
     yum -y install readline-devel
