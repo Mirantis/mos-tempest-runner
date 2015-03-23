@@ -96,9 +96,19 @@ run() {
     cd ${TOP_DIR}
 }
 
+return_exit_code() {
+    local failures_count="$(cat ${TEMPEST_REPORTS_DIR}/tempest-report.xml | grep "failures" | awk -F '"' '{print $4}')"
+    if [ ${failures_count} -eq "0" ]; then
+        exit 0
+    else
+        exit 1
+    fi
+}
+
 main() {
     parse_arguments "$@"
     run
+    return_exit_code
 }
 
 main "$@"
