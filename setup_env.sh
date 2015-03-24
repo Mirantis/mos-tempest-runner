@@ -191,8 +191,9 @@ prepare_cloud() {
 
     keystone role-create --name SwiftOperator || true
     keystone role-create --name anotherrole || true
-    keystone role-create --name ResellerAdmin || true
     keystone role-create --name heat_stack_user || true
+    keystone role-create --name heat_stack_owner || true
+    keystone role-create --name ResellerAdmin || true
 
     keystone user-role-add --role SwiftOperator --user demo --tenant demo || true
     keystone user-role-add --role anotherrole --user demo --tenant demo || true
