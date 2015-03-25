@@ -4,12 +4,17 @@ USER_NAME="${USER_NAME:-developer}"
 USER_HOME_DIR="/home/${USER_NAME}"
 DEST="${USER_HOME_DIR}/mos-tempest-runner"
 VIRTUALENV_DIR="${DEST}/.venv"
+TEMPEST_REPORTS_DIR="${DEST}/tempest-reports"
+
 PYTHON_VERSION="${PYTHON_VERSION:-2.7.9}"
 PYTHON_LOCATION="https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz"
+
 PIP_LOCATION="https://raw.github.com/pypa/pip/master/contrib/get-pip.py"
+
 CIRROS_VERSION="${CIRROS_VERSION:-0.3.2}"
 CIRROS_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz"
-TEMPEST_REPORTS_DIR="${DEST}/tempest-reports"
+
+KEYSTONE_HAPROXY_CONFIG_PATH="${KEYSTONE_HAPROXY_CONFIG_PATH:-/etc/haproxy/conf.d/030-keystone-2.cfg}"
 
 # Helper functions
 message() {

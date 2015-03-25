@@ -52,6 +52,7 @@ init_cluster_variables() {
     message "Fuel release is ${FUEL_RELEASE}"
 
     OS_AUTH_URL="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone catalog --service identity | grep publicURL | awk '{print \$4}'")"
+    OS_AUTH_IP="$(echo "${OS_AUTH_URL}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}')"
     message "OS_AUTH_URL = ${OS_AUTH_URL}"
 }
 
@@ -172,6 +173,24 @@ install_helpers() {
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${TOP_DIR}/requirements.txt
 }
 
+add_public_bind_to_keystone_haproxy_conf() {
+    # Keystone operations require admin endpoint which is internal and not
+    # accessible from the Fuel master node. So we need to make all Keystone
+    # endpoints accessible from the Fuel master node. Before we do it, we need
+    # to make haproxy listen to Keystone admin port 35357 on interface with public IP
+    if [ ! "$(ssh root@${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
+        message "Add public bind to Keystone haproxy config for admin port on all controllers"
+        local controller_node_ids=$(fuel node | grep controller | awk '{print $1}')
+        for controller_node_id in ${controller_node_ids}; do
+            ssh root@node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
+        done
+
+        message "Restart haproxy"
+        ssh root@${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
+        ssh root@${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
+    fi
+}
+
 prepare_cloud() {
     source ${VIRTUALENV_DIR}/bin/activate
     source ${USER_HOME_DIR}/openrc
@@ -213,6 +232,7 @@ main() {
     setup_virtualenv
     install_tempest
     install_helpers
+    add_public_bind_to_keystone_haproxy_conf
     prepare_cloud
 }
 
