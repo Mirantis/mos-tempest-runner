@@ -12,11 +12,11 @@
 
 # Orchestration
 - setUpClass (tempest.api.orchestration.stacks.test_neutron_resources.NeutronResourcesTestJSON):
-    Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue
+    Fail because of https://bugs.launchpad.net/mos/+bug/1428700
 - setUpClass (tempest.api.orchestration.stacks.test_templates.TemplateAWSTestJSON):
-    Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue
+    Fail because of https://bugs.launchpad.net/mos/+bug/1428700
 - setUpClass (tempest.api.orchestration.stacks.test_templates.TemplateYAMLTestJSON):
-    Implementing blueprint https://blueprints.launchpad.net/mos/+spec/heat-domains will have to fix the issue
+    Fail because of https://bugs.launchpad.net/mos/+bug/1428700
 
 # Scenario Tests
 - tempest.scenario.test_shelve_instance.TestShelveInstance.test_shelve_instance[compute,image,network]:
