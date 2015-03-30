@@ -178,8 +178,8 @@ add_public_bind_to_keystone_haproxy_conf() {
     # accessible from the Fuel master node. So we need to make all Keystone
     # endpoints accessible from the Fuel master node. Before we do it, we need
     # to make haproxy listen to Keystone admin port 35357 on interface with public IP
+    message "Add public bind to Keystone haproxy config for admin port on all controllers"
     if [ ! "$(ssh root@${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
-        message "Add public bind to Keystone haproxy config for admin port on all controllers"
         local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
         for controller_node_id in ${controller_node_ids}; do
             ssh root@node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
@@ -189,6 +189,7 @@ add_public_bind_to_keystone_haproxy_conf() {
         ssh root@${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
         ssh root@${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
     fi
+    message "Public bind already exists!"
 }
 
 prepare_cloud() {
