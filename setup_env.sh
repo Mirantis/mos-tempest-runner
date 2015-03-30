@@ -200,9 +200,15 @@ prepare_cloud() {
     # endpoints accessible from the Fuel master node
     message "Make Keystone endpoints public"
     local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list | grep identity | awk '{print \$2}'")"
-    local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list | grep ${identity_service_id} | awk '{print \$2}'")"
-    ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL}"
-    ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint}"
+    local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list | grep ${identity_service_id} | awk '{print \$8}'")"
+    local admin_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list | grep ${identity_service_id} | awk '{print \$10}'")"
+    if [ "${internal_url}" = "${OS_AUTH_URL}" -a "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
+        message "Keystone endpoints already public!"
+    else
+        local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list | grep ${identity_service_id} | awk '{print \$2}'")"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL}"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint}"
+    fi
 
     message "Create needed tenant and roles for Tempest tests"
     keystone tenant-create --name demo || true
