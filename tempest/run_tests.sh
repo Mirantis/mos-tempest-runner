@@ -47,7 +47,7 @@ choose_shouldfail_file() {
         SHOULDFAIL_FILE=${shouldfail_file}
 
         local is_radosgw="$(ssh ${CONTROLLER_HOST} "cat /etc/ceph/ceph.conf | grep -o radosgw.gateway" 2>/dev/null)"
-        if [ ${is_radosgw} ]; then
+        if [ "${is_radosgw}" ]; then
             SHOULDFAIL_FILE="${shouldfail_file/shouldfail/shouldfail_radosgw}"
         fi
     fi
@@ -98,7 +98,7 @@ run() {
 
 return_exit_code() {
     local failures_count="$(cat ${TEMPEST_REPORTS_DIR}/tempest-report.xml | grep "failures" | awk -F '"' '{print $4}')"
-    if [ ${failures_count} -eq "0" ]; then
+    if [ "${failures_count}" -eq "0" ]; then
         exit 0
     else
         exit 1

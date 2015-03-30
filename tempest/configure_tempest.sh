@@ -5,7 +5,7 @@ source ${TOP_DIR}/init_env_variables.sh
 
 check_service_availability() {
     local service_count="$(keystone service-list | grep $1 | wc -l)"
-    if [ ${service_count} -eq 0 ]; then
+    if [ "${service_count}" -eq "0" ]; then
         echo "false"
     else
         echo "true"
@@ -14,7 +14,7 @@ check_service_availability() {
 
 init_some_config_options() {
     IS_NEUTRON_AVAILABLE=$(check_service_availability "neutron")
-    if [ ${IS_NEUTRON_AVAILABLE} = "true" ]; then
+    if [ "${IS_NEUTRON_AVAILABLE}" = "true" ]; then
         PUBLIC_NETWORK_ID="$(neutron net-list --router:external=true -f csv -c id --quote none | tail -1)"
         PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none | tail -1)"
     fi
@@ -25,7 +25,7 @@ init_some_config_options() {
     OS_S3_URL="$(keystone catalog --service s3 | grep publicURL | awk '{print $4}')"
     OS_DASHBOARD_URL=${OS_AUTH_URL/:5000\/v2.0/\/horizon\/}
     local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
-    if [ ${controller_os} = "CentOS" ]; then
+    if [ "${controller_os}" = "CentOS" ]; then
         OS_DASHBOARD_URL=${OS_DASHBOARD_URL/horizon/dashboard}
     fi
 
