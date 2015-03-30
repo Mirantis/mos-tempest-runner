@@ -44,7 +44,7 @@ install_python27_pip_virtualenv() {
 init_cluster_variables() {
     message "Initialize cluster variables"
 
-    local controller_host_id="$(fuel node | grep controller | awk '{print $1}' | head -1)"
+    local controller_host_id="$(fuel node "$@" | grep controller | awk '{print $1}' | head -1)"
     CONTROLLER_HOST="node-${controller_host_id}"
     message "Controller host is '${CONTROLLER_HOST}'"
 
@@ -180,7 +180,7 @@ add_public_bind_to_keystone_haproxy_conf() {
     # to make haproxy listen to Keystone admin port 35357 on interface with public IP
     if [ ! "$(ssh root@${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
         message "Add public bind to Keystone haproxy config for admin port on all controllers"
-        local controller_node_ids=$(fuel node | grep controller | awk '{print $1}')
+        local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
         for controller_node_id in ${controller_node_ids}; do
             ssh root@node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
         done
@@ -227,13 +227,13 @@ prepare_cloud() {
 main() {
     install_system_requirements
     install_python27_pip_virtualenv
-    init_cluster_variables
+    init_cluster_variables "$@"
     configure_env
     setup_virtualenv
     install_tempest
     install_helpers
-    add_public_bind_to_keystone_haproxy_conf
+    add_public_bind_to_keystone_haproxy_conf "$@"
     prepare_cloud
 }
 
-main
+main "$@"
