@@ -188,8 +188,9 @@ add_public_bind_to_keystone_haproxy_conf() {
         message "Restart haproxy"
         ssh root@${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
         ssh root@${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
+    else
+        message "Public bind already exists!"
     fi
-    message "Public bind already exists!"
 }
 
 prepare_cloud() {
