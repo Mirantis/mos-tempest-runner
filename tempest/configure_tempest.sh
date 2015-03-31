@@ -50,6 +50,9 @@ use_stderr = ${USE_STDERR:-false}
 lock_path = /tmp
 log_file = tempest.log
 
+[auth]
+tempest_roles = _member_
+
 [boto]
 ec2_url = ${OS_EC2_URL}
 s3_url = ${OS_S3_URL}
