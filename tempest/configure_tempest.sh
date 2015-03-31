@@ -4,7 +4,7 @@ TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/init_env_variables.sh
 
 check_service_availability() {
-    local service_count="$(keystone service-list | grep $1 | wc -l)"
+    local service_count="$(keystone service-list 2>/dev/null | grep $1 | wc -l)"
     if [ "${service_count}" -eq "0" ]; then
         echo "false"
     else
@@ -21,8 +21,8 @@ init_some_config_options() {
 
     IMAGE_REF="$(glance image-list --name TestVM | grep TestVM | awk '{print $2}')"
 
-    OS_EC2_URL="$(keystone catalog --service ec2 | grep publicURL | awk '{print $4}')"
-    OS_S3_URL="$(keystone catalog --service s3 | grep publicURL | awk '{print $4}')"
+    OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
+    OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_DASHBOARD_URL=${OS_AUTH_URL/:5000\/v2.0/\/horizon\/}
     local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
     if [ "${controller_os}" = "CentOS" ]; then
