@@ -109,7 +109,7 @@ img_dir = ${DEST}/.venv/files
 ami_img_file = cirros-0.3.2-x86_64-blank.img
 ari_img_file = cirros-0.3.2-x86_64-initrd
 aki_img_file = cirros-0.3.2-x86_64-vmlinuz
-large_ops_number = 10
+large_ops_number = 5
 
 [service_available]
 ceilometer = $(check_service_availability "ceilometer")
