@@ -48,7 +48,7 @@ choose_shouldfail_file() {
 
         local is_radosgw="$(ssh ${CONTROLLER_HOST} "cat /etc/ceph/ceph.conf | grep -o radosgw.gateway" 2>/dev/null)"
         if [ "${is_radosgw}" ]; then
-            SHOULDFAIL_FILE="${shouldfail_file/shouldfail/shouldfail_radosgw}"
+            SHOULDFAIL_FILE="${shouldfail_file/shouldfail./shouldfail_radosgw.}"
         fi
     fi
 
