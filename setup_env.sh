@@ -138,6 +138,9 @@ install_tempest() {
     rm -rf ${tempest_dir}
     git clone git://git.openstack.org/openstack/tempest.git
     cd ${tempest_dir}
+    if [ ! -z "${TEMPEST_COMMIT_ID}" ]; then
+        git checkout ${TEMPEST_COMMIT_ID}
+    fi
     ${VIRTUALENV_DIR}/bin/python setup.py install
     # TODO (ylobankov): don't use the workaround when bug #1410622 is fixed.
     # This is the workaround to avoid failures for EC2 tests. According to

@@ -16,6 +16,8 @@ CIRROS_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros-${CI
 
 KEYSTONE_HAPROXY_CONFIG_PATH="${KEYSTONE_HAPROXY_CONFIG_PATH:-/etc/haproxy/conf.d/030-keystone-2.cfg}"
 
+TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-}"
+
 # Helper functions
 message() {
     printf "\e[33m%s\e[0m\n" "${1}"
