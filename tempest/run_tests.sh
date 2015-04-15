@@ -54,12 +54,14 @@ choose_shouldfail_file() {
 
     #TODO(ylobankov): remove this workaround after the bug #1427782 is fixed
     local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
-    if [ "${controller_os}" = "CentOS"  -a ! "$(cat ${SHOULDFAIL_FILE} | grep ImagesOneServerTestJSON})" ]; then
-        cat >> ${SHOULDFAIL_FILE} <<EOF
+    if [ "${controller_os}" = "CentOS" ]; then
+        if [ ! "$(cat ${SHOULDFAIL_FILE} | grep ImagesOneServerTestJSON})" ]; then
+            cat >> ${SHOULDFAIL_FILE} <<EOF
 
 - tempest.api.compute.images.test_images_oneserver.ImagesOneServerTestJSON.test_create_image_specify_multibyte_character_image_name[gate,id-3b7c6fe4-dfe7-477c-9243-b06359db51e6]:
     Fail because of https://bugs.launchpad.net/mos/+bug/1427782
 EOF
+        fi
     fi
 
     message "Shouldfail:"
