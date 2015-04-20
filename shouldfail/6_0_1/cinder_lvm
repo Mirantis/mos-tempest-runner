@@ -1,0 +1,10 @@
+
+# Scenario Tests
+- tempest.scenario.test_encrypted_cinder_volumes.TestEncryptedCinderVolumes.test_encrypted_cinder_volumes_cryptsetup[compute,id-cbc752ed-b716-4717-910f-956cce965722,image,volume]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1420849
+- tempest.scenario.test_encrypted_cinder_volumes.TestEncryptedCinderVolumes.test_encrypted_cinder_volumes_luks[compute,id-79165fb4-5534-4b9d-8429-97ccffb8f86e,image,volume]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1420849
+- tempest.scenario.test_volume_boot_pattern.TestVolumeBootPattern.test_volume_boot_pattern[compute,id-557cd2c2-4eb8-4dce-98be-f86765ff311b,image,volume]:
+    Fail because of bug https://bugs.launchpad.net/tempest/+bug/1441563
+- tempest.scenario.test_volume_boot_pattern.TestVolumeBootPatternV2.test_volume_boot_pattern[compute,id-557cd2c2-4eb8-4dce-98be-f86765ff311b,image,volume]:
+    Fail because of bug https://bugs.launchpad.net/tempest/+bug/1441563

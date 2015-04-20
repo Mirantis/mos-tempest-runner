@@ -37,37 +37,6 @@ parse_arguments() {
     TESTARGS="$@"
 }
 
-choose_shouldfail_file() {
-    # Define the default file
-    SHOULDFAIL_FILE="${DEST}/shouldfail/default_shouldfail.yaml"
-
-    local fuel_release="$(echo ${FUEL_RELEASE} | sed "s/'//g" | sed "s/\./_/g")"
-    local shouldfail_file="${DEST}/shouldfail/${fuel_release}/shouldfail.yaml"
-    if [ -f ${shouldfail_file} ]; then
-        SHOULDFAIL_FILE=${shouldfail_file}
-    fi
-
-    local is_radosgw="$(ssh ${CONTROLLER_HOST} "cat /etc/ceph/ceph.conf | grep -o radosgw.gateway" 2>/dev/null)"
-    if [ "${is_radosgw}" ]; then
-        SHOULDFAIL_FILE="${shouldfail_file/shouldfail./shouldfail_radosgw.}"
-    fi
-
-    #TODO(ylobankov): remove this workaround after the bug #1427782 is fixed
-    local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
-    if [ "${controller_os}" = "CentOS" ]; then
-        if [ ! "$(cat ${SHOULDFAIL_FILE} | grep ImagesOneServerTestJSON})" ]; then
-            cat >> ${SHOULDFAIL_FILE} <<EOF
-
-- tempest.api.compute.images.test_images_oneserver.ImagesOneServerTestJSON.test_create_image_specify_multibyte_character_image_name[gate,id-3b7c6fe4-dfe7-477c-9243-b06359db51e6]:
-    Fail because of https://bugs.launchpad.net/mos/+bug/1427782
-EOF
-        fi
-    fi
-
-    message "Shouldfail:"
-    cat ${SHOULDFAIL_FILE}
-}
-
 run_tests() {
     if [ ! -d .testrepository ]; then
         testr init
@@ -82,7 +51,7 @@ run_tests() {
     if [ "${SERIAL}" = "true" ]; then
         testr_params=""
     fi
-    choose_shouldfail_file
+    SHOULDFAIL_FILE="${DEST}/shouldfail/shouldfail.yaml"
     testr run ${testr_params} --subunit ${TESTARGS} | subunit-1to2 | ${TOP_DIR}/subunit-shouldfail-filter --shouldfail-file=${SHOULDFAIL_FILE} | subunit-2to1 | ${TOP_DIR}/colorizer
 }
 
@@ -103,6 +72,7 @@ run() {
     message "Running Tempest tests"
     cd ${DEST}/tempest
     configure_tempest
+    configure_shouldfail_file
     run_tests
     collect_results
     cd ${TOP_DIR}

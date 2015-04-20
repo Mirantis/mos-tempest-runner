@@ -48,7 +48,11 @@ init_cluster_variables() {
     CONTROLLER_HOST="node-${controller_host_id}"
     message "Controller host is '${CONTROLLER_HOST}'"
 
-    FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}')"
+    local compute_host_id="$(fuel node "$@" | grep compute | awk '{print $1}' | head -1)"
+    COMPUTE_HOST="node-${compute_host_id}"
+    message "Compute host is '${COMPUTE_HOST}'"
+
+    FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}' | sed "s/'//g")"
     message "Fuel release is ${FUEL_RELEASE}"
 
     OS_AUTH_URL="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
@@ -119,6 +123,7 @@ EOF
     sed -i "s/internalURL/publicURL/g" ${USER_HOME_DIR}/openrc
     echo "export FUEL_RELEASE='${FUEL_RELEASE}'" >> ${USER_HOME_DIR}/openrc
     echo "export CONTROLLER_HOST='${CONTROLLER_HOST}'" >> ${USER_HOME_DIR}/openrc
+    echo "export COMPUTE_HOST='${COMPUTE_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export OS_AUTH_URL='${OS_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
     echo "export USER_NAME='${USER_NAME}'" >> ${USER_HOME_DIR}/openrc
 
@@ -153,6 +158,7 @@ install_tempest() {
     message "Tempest has been installed into ${tempest_dir}"
 
     cp ${TOP_DIR}/tempest/configure_tempest.sh ${VIRTUALENV_DIR}/bin/configure_tempest
+    cp ${TOP_DIR}/tempest/configure_shouldfail_file.sh ${VIRTUALENV_DIR}/bin/configure_shouldfail_file
     cp ${TOP_DIR}/tempest/run_tests.sh ${VIRTUALENV_DIR}/bin/run_tests
     cp -r ${TOP_DIR}/shouldfail ${DEST}
     mkdir -p ${TEMPEST_REPORTS_DIR}
@@ -211,29 +217,29 @@ prepare_cloud() {
     if [ "${internal_url}" = "${OS_AUTH_URL}" -a "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
         message "Keystone endpoints already public!"
     else
-        local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
+        local old_endpoint="$(ssh root${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
         ssh root@${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL} 2>/dev/null"
         ssh root@${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
     fi
 
     message "Create needed tenant and roles for Tempest tests"
-    ssh root@${CONTROLLER_HOST} "keystone tenant-create --name demo 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone user-create --tenant demo --name demo --pass demo 2>/dev/null || true"
+    keystone tenant-create --name demo 2>/dev/null || true
+    keystone user-create --tenant demo --name demo --pass demo 2>/dev/null || true
 
-    ssh root@${CONTROLLER_HOST} "keystone role-create --name SwiftOperator 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone role-create --name anotherrole 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone role-create --name heat_stack_user 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone role-create --name heat_stack_owner 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone role-create --name ResellerAdmin 2>/dev/null || true"
+    keystone role-create --name SwiftOperator 2>/dev/null || true
+    keystone role-create --name anotherrole 2>/dev/null || true
+    keystone role-create --name heat_stack_user 2>/dev/null || true
+    keystone role-create --name heat_stack_owner 2>/dev/null || true
+    keystone role-create --name ResellerAdmin 2>/dev/null || true
 
-    ssh root@${CONTROLLER_HOST} "keystone user-role-add --role SwiftOperator --user demo --tenant demo 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone user-role-add --role anotherrole --user demo --tenant demo 2>/dev/null || true"
-    ssh root@${CONTROLLER_HOST} "keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true"
+    keystone user-role-add --role SwiftOperator --user demo --tenant demo 2>/dev/null || true
+    keystone user-role-add --role anotherrole --user demo --tenant demo 2>/dev/null || true
+    keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true
 
     message "Create flavor 'm1.tempest-nano' for Tempest tests"
-    ssh root@${CONTROLLER_HOST} "nova flavor-create m1.tempest-nano 0 64 0 1 || true"
+    nova flavor-create m1.tempest-nano 0 64 0 1 || true
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
-    ssh root@${CONTROLLER_HOST} "nova flavor-create m1.tempest-micro 42 128 0 1 || true"
+    nova flavor-create m1.tempest-micro 42 128 0 1 || true
 }
 
 main() {
