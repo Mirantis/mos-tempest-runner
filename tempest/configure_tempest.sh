@@ -99,7 +99,9 @@ uri_v3 = ${OS_AUTH_URL/v2.0/v3}
 public_network_id = ${PUBLIC_NETWORK_ID}
 
 [network-feature-enabled]
-api_extensions = ext-gw-mode,security-group,l3_agent_scheduler,binding,quotas,dhcp_agent_scheduler,multi-provider,agent,external-net,router,metering,allowed-address-pairs,extra_dhcp_opt,extraroute
+api_extensions = security-group,l3_agent_scheduler,ext-gw-mode,binding,metering,agent,quotas,dhcp_agent_scheduler,l3-ha,multi-provider,external-net,router,allowed-address-pairs,extraroute,extra_dhcp_opt,provider,dvr
+ipv6_subnet_attributes = True
+ipv6 = True
 
 [object-storage]
 operator_role = SwiftOperator
