@@ -55,7 +55,7 @@ init_cluster_variables() {
     FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}' | sed "s/'//g")"
     message "Fuel release is ${FUEL_RELEASE}"
 
-    OS_AUTH_URL="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
+    OS_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
     OS_AUTH_IP="$(echo "${OS_AUTH_URL}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}')"
     message "OS_AUTH_URL = ${OS_AUTH_URL}"
 }
@@ -189,15 +189,15 @@ add_public_bind_to_keystone_haproxy_conf() {
     # endpoints accessible from the Fuel master node. Before we do it, we need
     # to make haproxy listen to Keystone admin port 35357 on interface with public IP
     message "Add public bind to Keystone haproxy config for admin port on all controllers"
-    if [ ! "$(ssh root@${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
+    if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
         local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
         for controller_node_id in ${controller_node_ids}; do
-            ssh root@node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
+            ssh node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
         done
 
         message "Restart haproxy"
-        ssh root@${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
-        ssh root@${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
+        ssh ${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
+        ssh ${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
     else
         message "Public bind already exists!"
     fi
@@ -211,15 +211,15 @@ prepare_cloud() {
     # accessible from the Fuel master node. So we need to make all Keystone
     # endpoints accessible from the Fuel master node
     message "Make Keystone endpoints public"
-    local identity_service_id="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
-    local internal_url="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
-    local admin_url="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
+    local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
+    local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
+    local admin_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
     if [ "${internal_url}" = "${OS_AUTH_URL}" -a "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
         message "Keystone endpoints already public!"
     else
-        local old_endpoint="$(ssh root${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
-        ssh root@${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL} 2>/dev/null"
-        ssh root@${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
+        local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL} 2>/dev/null"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
     fi
 
     message "Create needed tenant and roles for Tempest tests"
