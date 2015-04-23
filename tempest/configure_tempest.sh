@@ -123,6 +123,9 @@ nova = $(check_service_availability "nova")
 sahara = $(check_service_availability "sahara")
 swift = $(check_service_availability "swift")
 
+[telemetry]
+too_slow_to_test = false
+
 [volume]
 build_timeout = 300
 storage_protocol = ${CINDER_STORAGE_PROTOCOL}
