@@ -167,7 +167,8 @@ install_tempest() {
     local tempest_files="${VIRTUALENV_DIR}/files"
     rm -rf ${tempest_files}
     mkdir ${tempest_files}
-    wget -O ${tempest_files}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz ${CIRROS_IMAGE_URL}
+    wget -O ${tempest_files}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz ${CIRROS_UEC_IMAGE_URL}
+    wget -O ${tempest_files}/cirros-${CIRROS_VERSION}-x86_64-disk.img ${CIRROS_DISK_IMAGE_URL}
     cd ${tempest_files}
     tar xzf cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz
 
@@ -240,6 +241,13 @@ prepare_cloud() {
     nova flavor-create m1.tempest-nano 0 64 0 1 || true
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
     nova flavor-create m1.tempest-micro 42 128 0 1 || true
+
+    message "Upload cirros image for Tempest tests"
+    if [ ! "$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64)" ]; then
+        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true || true
+    else
+        message "Cirros image for Tempest tests already uploaded!"
+    fi
 }
 
 main() {

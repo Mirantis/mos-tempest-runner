@@ -19,7 +19,8 @@ init_some_config_options() {
         PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none | tail -1)"
     fi
 
-    IMAGE_REF="$(glance image-list --name TestVM | grep TestVM | awk '{print $2}')"
+    IMAGE_REF="$(glance image-list | grep TestVM | awk '{print $2}')"
+    IMAGE_REF_ALT="$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
 
     OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
@@ -64,7 +65,7 @@ has_manage = false
 
 [compute]
 image_ref = ${IMAGE_REF}
-image_ref_alt = ${IMAGE_REF}
+image_ref_alt = ${IMAGE_REF_ALT}
 flavor_ref = 0
 flavor_ref_alt = 42
 ssh_user = cirros
