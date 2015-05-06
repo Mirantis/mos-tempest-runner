@@ -1,4 +1,3 @@
-
 # Nova
 - tempest.api.compute.servers.test_server_actions.ServerActionsTestJSON.test_shelve_unshelve_server[gate,id-77eba8e0-036e-4635-944b-f7a8f3b78dc9]:
     Fail because of https://bugs.launchpad.net/mos/+bug/1423651
@@ -8,3 +7,7 @@
 # Scenario Tests
 - tempest.scenario.test_shelve_instance.TestShelveInstance.test_shelve_instance[compute,id-1164e700-0af0-4a4c-8792-35909a88743c,image,network]:
     Fail because of https://bugs.launchpad.net/mos/+bug/1423651
+
+# Neutron
+- tempest.api.network.test_dhcp_ipv6.NetworksTestDHCPv6.test_dhcpv6_64_subnets[id-4256c61d-c538-41ea-9147-3c450c36669e]
+    Fail because of https://bugs.launchpad.net/mos/+bug/1450359

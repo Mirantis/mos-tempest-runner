@@ -4,3 +4,7 @@
     Fail because of bug https://bugs.launchpad.net/tempest/+bug/1441563
 - tempest.scenario.test_volume_boot_pattern.TestVolumeBootPatternV2.test_volume_boot_pattern[compute,id-557cd2c2-4eb8-4dce-98be-f86765ff311b,image,volume]:
     Fail because of bug https://bugs.launchpad.net/tempest/+bug/1441563
+
+# Neutron
+- tempest.api.network.test_dhcp_ipv6.NetworksTestDHCPv6.test_dhcpv6_64_subnets[id-4256c61d-c538-41ea-9147-3c450c36669e]
+    Fail because of https://bugs.launchpad.net/mos/+bug/1450359

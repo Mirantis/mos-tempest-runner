@@ -2,3 +2,7 @@
 # Swift
 - tempest.api.object_storage.test_container_sync_middleware.ContainerSyncMiddlewareTest.test_container_synchronization[id-ea4645a1-d147-4976-82f7-e5a7a3065f80,slow]
 - tempest.api.object_storage.test_account_services.AccountTest.test_list_no_containers[gate,id-884ec421-fbad-4fcc-916b-0580f2699565,smoke]
+
+# Neutron
+- tempest.api.network.test_dhcp_ipv6.NetworksTestDHCPv6.test_dhcpv6_64_subnets[id-4256c61d-c538-41ea-9147-3c450c36669e]
+    Fail because of https://bugs.launchpad.net/mos/+bug/1450359

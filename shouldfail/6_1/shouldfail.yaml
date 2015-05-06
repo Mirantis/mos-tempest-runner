@@ -6,3 +6,7 @@
 # Scenario
 - tempest.scenario.test_network_v6.TestGettingAddress.test_dhcp6_stateless_from_os[compute,id-d7e1f858-187c-45a6-89c9-bdafde619a9f,network]
 - tempest.scenario.test_network_v6.TestGettingAddress.test_slaac_from_os[compute,id-2c92df61-29f0-4eaa-bee3-7c65bef62a43,network]
+
+# Neutron
+- tempest.api.network.test_dhcp_ipv6.NetworksTestDHCPv6.test_dhcpv6_64_subnets[id-4256c61d-c538-41ea-9147-3c450c36669e]
+    Fail because of https://bugs.launchpad.net/mos/+bug/1450359
