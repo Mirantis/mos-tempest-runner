@@ -3,8 +3,7 @@
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/init_env_variables.sh
 
-# TODO(tnurlygayanov): change to 'false' when we will add more VLANs to test env
-SERIAL="${SERIAL:-true}"
+SERIAL="${SERIAL:-false}"
 
 display_help() {
     echo "This script runs Tempest tests"
