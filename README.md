@@ -4,6 +4,9 @@ Toolkit to run Tempest against Mirantis OpenStack
 
 Installation and Usage
 ----------------------
+
+**How to Run All Tempest Tests**
+
 Log into the Fuel master node. Make sure the Fuel master node has 
 Internet connection before you execute the further steps:
 
@@ -16,16 +19,35 @@ $ ./rejoin.sh
 $ run_tests
 ```
 
-If you want to run sigle test class or single test case, you can
-specify name of this test case as parameter for 'run_tests' command:
+**How to Run Some Group of Tempest Tests**
+
+If you want to run some group of test cases, you should use the following 
+command:
 
 ```bash
-$ run_tests test_update_user_password
+$ run_tests <path.to.test.folder.or.path.to.test.file.or.path.to.test.class>
 ```
 
-If you want to run single test case in debug mode to use pdb python debugger,
-you can use the following command:
+For example, you would like to run some group of tests for Keystone. 
+In this case you can execute the following commands:
 
 ```bash
-$ ./tempest/run_tempest.sh --debug tempest.api.identity.admin.v3.test_users.UsersV3TestJSON.test_update_user_password
+$ run_tests tempest.api.identity
+$ run_tests tempest.api.identity.admin.test_roles
+$ run_tests tempest.api.identity.admin.test_roles.RolesTestJSON
+```
+
+**How to Run Single Tempest Test**
+
+If you want to run single test case, you should use the following command:
+
+```bash
+$ run_tests <path.to.test>
+```
+
+For example, you would like to run one of the tests for Keystone. 
+In this case you can execute the following command:
+
+```bash
+$ run_tests tempest.api.identity.admin.test_roles.RolesTestJSON.test_list_roles
 ```
