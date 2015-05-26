@@ -146,6 +146,8 @@ install_tempest() {
     if [ ! -z "${TEMPEST_COMMIT_ID}" ]; then
         git checkout ${TEMPEST_COMMIT_ID}
     fi
+    # TODO (ylobankov): don't use the workaround once the pach https://review.openstack.org/#/c/185616/ is merged
+    git fetch https://review.openstack.org/openstack/tempest refs/changes/16/185616/3 && git cherry-pick FETCH_HEAD
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt -r ${tempest_dir}/test-requirements.txt
     # TODO (ylobankov): don't use the workaround when bug #1410622 is fixed.
     # This is the workaround to avoid failures for EC2 tests. According to
