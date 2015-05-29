@@ -2,6 +2,17 @@ MOS-Tempest-Runner
 ==================
 Toolkit to run Tempest against Mirantis OpenStack
 
+Introduction
+------------
+
+The main goal of these scripts is to prepare the OpenStack cloud for Tempest 
+and run the tests by executing a few commands. 
+
+**WARNING:  Use mos-tempest-runner to run Tempest against PRODUCTION OpenStack 
+clouds at own risk! These scripts may break the OpenStack cloud! Pay attention 
+that mos-tempest-runner was initially designed to run Tempest on CI and test 
+OpenStack environments!**
+
 Installation and Usage
 ----------------------
 
