@@ -244,11 +244,11 @@ prepare_cloud() {
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
     nova flavor-create m1.tempest-micro 42 128 0 1 || true
 
-    message "Upload cirros image for Tempest tests"
+    message "Upload CirrOS image for Tempest tests"
     if [ ! "$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64)" ]; then
         glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true || true
     else
-        message "Cirros image for Tempest tests already uploaded!"
+        message "CirrOS image for Tempest tests already uploaded!"
     fi
 }
 

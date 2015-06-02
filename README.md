@@ -13,6 +13,26 @@ clouds at own risk! These scripts may break the OpenStack cloud! Pay attention
 that mos-tempest-runner was initially designed to run Tempest on CI and test 
 OpenStack environments!**
 
+**Requirements to run mos-tempest-runner "out of the box"**
+
+1. Mos-tempest-runner must be run on the Fuel master node only. 
+2. The Fuel master node must have Internet connection.
+
+**How mos-tempest-runner prepares OpenStack cloud**
+
+In order to run Tempest against an OpenStack cloud we have to perform some 
+actions on the cloud. For example, create a tenant, a user without admin role, 
+some extra roles, etc. What mos-tempest-runner does:
+
+1. Makes all Keystone endpoints public.
+2. Creates tenant "demo" and user "demo".
+3. Creates 5 roles: "SwiftOperator", "anotherrole", "heat_stack_user", 
+"heat_stack_owner", "ResellerAdmin".
+4. Assigns roles "SwiftOperator" and "anotherrole" to user "demo" in 
+tenant "demo". Assigns role "admin" to user "admin" in tenant "demo".
+5. Creates flavors "m1.tempest-nano" and "m1.tempest-micro".
+6. Uploads a CirrOS image.
+
 Installation and Usage
 ----------------------
 
@@ -22,11 +42,11 @@ Log into the Fuel master node. Make sure the Fuel master node has
 Internet connection before you execute the further steps:
 
 ```bash
-$ yum -y install git
-$ git clone https://github.com/Mirantis/mos-tempest-runner.git
-$ cd mos-tempest-runner
-$ ./setup_env.sh
-$ ./rejoin.sh
+# yum -y install git
+# git clone https://github.com/Mirantis/mos-tempest-runner.git
+# cd mos-tempest-runner
+# ./setup_env.sh
+# ./rejoin.sh
 $ run_tests
 ```
 
