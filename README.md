@@ -13,12 +13,12 @@ clouds at own risk! These scripts may break the OpenStack cloud! Pay attention
 that mos-tempest-runner was initially designed to run Tempest on CI and test 
 OpenStack environments!**
 
-**Requirements to run mos-tempest-runner "out of the box"**
+**Requirements to Run Mos-Tempest-Runner "out of the box"**
 
 1. Mos-tempest-runner must be run on the Fuel master node only. 
 2. The Fuel master node must have Internet connection.
 
-**How mos-tempest-runner prepares OpenStack cloud**
+**How Mos-Tempest-Runner Prepares OpenStack Cloud**
 
 In order to run Tempest against an OpenStack cloud we have to perform some 
 actions on the cloud. For example, create a tenant, a user without admin role, 
@@ -42,11 +42,11 @@ Log into the Fuel master node. Make sure the Fuel master node has
 Internet connection before you execute the further steps:
 
 ```bash
-# yum -y install git
-# git clone https://github.com/Mirantis/mos-tempest-runner.git
-# cd mos-tempest-runner
-# ./setup_env.sh
-# ./rejoin.sh
+$ yum -y install git
+$ git clone https://github.com/Mirantis/mos-tempest-runner.git
+$ cd mos-tempest-runner
+$ ./setup_env.sh
+$ ./rejoin.sh
 $ run_tests
 ```
 
