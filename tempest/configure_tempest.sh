@@ -53,6 +53,7 @@ log_file = tempest.log
 
 [auth]
 tempest_roles = _member_
+allow_tenant_isolation = true
 
 [boto]
 ec2_url = ${OS_EC2_URL}
@@ -72,9 +73,8 @@ ssh_user = cirros
 image_ssh_user = cirros
 image_alt_ssh_user = cirros
 fixed_network_name=net04
-network_for_ssh=net04_ext
+ssh_channel_timeout = 300
 build_timeout = 300
-allow_tenant_isolation = true
 
 [compute-feature-enabled]
 live_migration = false
