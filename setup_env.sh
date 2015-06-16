@@ -146,8 +146,10 @@ install_tempest() {
     if [ ! -z "${TEMPEST_COMMIT_ID}" ]; then
         git checkout ${TEMPEST_COMMIT_ID}
     fi
+    # TODO(ylobankov): remove this workaround after the bug 1465676 is fixed
+    git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/1 && git cherry-pick FETCH_HEAD
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
-    # TODO (ylobankov): don't use the workaround when bug #1410622 is fixed.
+    # TODO(ylobankov): remove this workaround after the bug #1410622 is fixed.
     # This is the workaround to avoid failures for EC2 tests. According to
     # the bug #1408987 reported to Nova these tests permanently fail since
     # the boto 2.35.0 has been released. The bug #1408987 was fixed and
