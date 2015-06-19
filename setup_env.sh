@@ -217,11 +217,11 @@ prepare_cloud() {
     local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
     local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
     local admin_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
-    if [ "${internal_url}" = "${OS_AUTH_URL}" -a "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
+    if [ "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
         message "Keystone endpoints already public!"
     else
         local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
-        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL} 2>/dev/null"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${internal_url} 2>/dev/null"
         ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
     fi
 
