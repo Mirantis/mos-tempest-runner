@@ -1,0 +1,4 @@
+
+# Swift
+- tempest.api.object_storage.test_container_sync_middleware.ContainerSyncMiddlewareTest.test_container_synchronization[id-ea4645a1-d147-4976-82f7-e5a7a3065f80,slow]
+- tempest.api.object_storage.test_account_services.AccountTest.test_list_no_containers[id-884ec421-fbad-4fcc-916b-0580f2699565]

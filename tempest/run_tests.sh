@@ -37,25 +37,6 @@ parse_arguments() {
     TESTARGS="$@"
 }
 
-choose_shouldfail_file() {
-    # Define the default file
-    SHOULDFAIL_FILE="${DEST}/shouldfail/default_shouldfail.yaml"
-
-    local fuel_release="$(echo ${FUEL_RELEASE} | sed "s/'//g" | sed "s/\./_/g")"
-    local shouldfail_file="${DEST}/shouldfail/${fuel_release}/shouldfail.yaml"
-    if [ -f ${shouldfail_file} ]; then
-        SHOULDFAIL_FILE=${shouldfail_file}
-
-        local is_radosgw="$(ssh ${CONTROLLER_HOST} "cat /etc/ceph/ceph.conf | grep -o radosgw.gateway" 2>/dev/null)"
-        if [ ${is_radosgw} ]; then
-            SHOULDFAIL_FILE="${shouldfail_file/shouldfail/shouldfail_radosgw}"
-        fi
-    fi
-
-    message "Shouldfail:"
-    cat ${SHOULDFAIL_FILE}
-}
-
 run_tests() {
     if [ ! -d .testrepository ]; then
         testr init
@@ -70,7 +51,7 @@ run_tests() {
     if [ "${SERIAL}" = "true" ]; then
         testr_params=""
     fi
-    choose_shouldfail_file
+    SHOULDFAIL_FILE="${DEST}/shouldfail/shouldfail.yaml"
     testr run ${testr_params} --subunit ${TESTARGS} | subunit-1to2 | ${TOP_DIR}/subunit-shouldfail-filter --shouldfail-file=${SHOULDFAIL_FILE} | subunit-2to1 | ${TOP_DIR}/colorizer
 }
 
@@ -91,14 +72,25 @@ run() {
     message "Running Tempest tests"
     cd ${DEST}/tempest
     configure_tempest
+    configure_shouldfail_file
     run_tests
     collect_results
     cd ${TOP_DIR}
 }
 
+return_exit_code() {
+    local failures_count="$(cat ${TEMPEST_REPORTS_DIR}/tempest-report.xml | grep "failures" | awk -F '"' '{print $4}')"
+    if [ "${failures_count}" -eq "0" ]; then
+        exit 0
+    else
+        exit 1
+    fi
+}
+
 main() {
     parse_arguments "$@"
     run
+    return_exit_code
 }
 
 main "$@"

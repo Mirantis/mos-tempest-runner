@@ -44,14 +44,19 @@ install_python27_pip_virtualenv() {
 init_cluster_variables() {
     message "Initialize cluster variables"
 
-    local controller_host_id="$(fuel node | grep controller | awk '{print $1}' | head -1)"
+    local controller_host_id="$(fuel node "$@" | grep controller | awk '{print $1}' | head -1)"
     CONTROLLER_HOST="node-${controller_host_id}"
     message "Controller host is '${CONTROLLER_HOST}'"
 
-    FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}')"
+    local compute_host_id="$(fuel node "$@" | grep compute | awk '{print $1}' | head -1)"
+    COMPUTE_HOST="node-${compute_host_id}"
+    message "Compute host is '${COMPUTE_HOST}'"
+
+    FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}' | sed "s/'//g")"
     message "Fuel release is ${FUEL_RELEASE}"
 
-    OS_AUTH_URL="$(ssh root@${CONTROLLER_HOST} ". openrc; keystone catalog --service identity | grep publicURL | awk '{print \$4}'")"
+    OS_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
+    OS_AUTH_IP="$(echo "${OS_AUTH_URL}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}')"
     message "OS_AUTH_URL = ${OS_AUTH_URL}"
 }
 
@@ -115,8 +120,10 @@ EOF
     scp ${CONTROLLER_HOST}:/root/openrc ${USER_HOME_DIR}/openrc
     sed -i "/LC_ALL.*/d" ${USER_HOME_DIR}/openrc
     sed -i "/OS_AUTH_URL.*/d" ${USER_HOME_DIR}/openrc
+    sed -i "s/internalURL/publicURL/g" ${USER_HOME_DIR}/openrc
     echo "export FUEL_RELEASE='${FUEL_RELEASE}'" >> ${USER_HOME_DIR}/openrc
     echo "export CONTROLLER_HOST='${CONTROLLER_HOST}'" >> ${USER_HOME_DIR}/openrc
+    echo "export COMPUTE_HOST='${COMPUTE_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export OS_AUTH_URL='${OS_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
     echo "export USER_NAME='${USER_NAME}'" >> ${USER_HOME_DIR}/openrc
 
@@ -136,8 +143,13 @@ install_tempest() {
     rm -rf ${tempest_dir}
     git clone git://git.openstack.org/openstack/tempest.git
     cd ${tempest_dir}
-    ${VIRTUALENV_DIR}/bin/python setup.py install
-    # TODO (ylobankov): don't use the workaround when bug #1410622 is fixed.
+    if [ ! -z "${TEMPEST_COMMIT_ID}" ]; then
+        git checkout ${TEMPEST_COMMIT_ID}
+    fi
+    # TODO(ylobankov): remove this workaround after the bug 1465676 is fixed
+    git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/1 && git cherry-pick FETCH_HEAD
+    ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
+    # TODO(ylobankov): remove this workaround after the bug #1410622 is fixed.
     # This is the workaround to avoid failures for EC2 tests. According to
     # the bug #1408987 reported to Nova these tests permanently fail since
     # the boto 2.35.0 has been released. The bug #1408987 was fixed and
@@ -148,6 +160,7 @@ install_tempest() {
     message "Tempest has been installed into ${tempest_dir}"
 
     cp ${TOP_DIR}/tempest/configure_tempest.sh ${VIRTUALENV_DIR}/bin/configure_tempest
+    cp ${TOP_DIR}/tempest/configure_shouldfail_file.sh ${VIRTUALENV_DIR}/bin/configure_shouldfail_file
     cp ${TOP_DIR}/tempest/run_tests.sh ${VIRTUALENV_DIR}/bin/run_tests
     cp -r ${TOP_DIR}/shouldfail ${DEST}
     mkdir -p ${TEMPEST_REPORTS_DIR}
@@ -156,7 +169,8 @@ install_tempest() {
     local tempest_files="${VIRTUALENV_DIR}/files"
     rm -rf ${tempest_files}
     mkdir ${tempest_files}
-    wget -O ${tempest_files}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz ${CIRROS_IMAGE_URL}
+    wget -O ${tempest_files}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz ${CIRROS_UEC_IMAGE_URL}
+    wget -O ${tempest_files}/cirros-${CIRROS_VERSION}-x86_64-disk.img ${CIRROS_DISK_IMAGE_URL}
     cd ${tempest_files}
     tar xzf cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz
 
@@ -172,6 +186,26 @@ install_helpers() {
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${TOP_DIR}/requirements.txt
 }
 
+add_public_bind_to_keystone_haproxy_conf() {
+    # Keystone operations require admin endpoint which is internal and not
+    # accessible from the Fuel master node. So we need to make all Keystone
+    # endpoints accessible from the Fuel master node. Before we do it, we need
+    # to make haproxy listen to Keystone admin port 35357 on interface with public IP
+    message "Add public bind to Keystone haproxy config for admin port on all controllers"
+    if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
+        local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
+        for controller_node_id in ${controller_node_ids}; do
+            ssh node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
+        done
+
+        message "Restart haproxy"
+        ssh ${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
+        ssh ${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
+    else
+        message "Public bind already exists!"
+    fi
+}
+
 prepare_cloud() {
     source ${VIRTUALENV_DIR}/bin/activate
     source ${USER_HOME_DIR}/openrc
@@ -180,39 +214,54 @@ prepare_cloud() {
     # accessible from the Fuel master node. So we need to make all Keystone
     # endpoints accessible from the Fuel master node
     message "Make Keystone endpoints public"
-    local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list | grep identity | awk '{print \$2}'")"
-    local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list | grep ${identity_service_id} | awk '{print \$2}'")"
-    ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${OS_AUTH_URL}"
-    ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint}"
+    local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
+    local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
+    local admin_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
+    if [ "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
+        message "Keystone endpoints already public!"
+    else
+        local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${internal_url} 2>/dev/null"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
+    fi
 
     message "Create needed tenant and roles for Tempest tests"
-    keystone tenant-create --name demo || true
-    keystone user-create --tenant demo --name demo --pass demo || true
+    keystone tenant-create --name demo 2>/dev/null || true
+    keystone user-create --tenant demo --name demo --pass demo 2>/dev/null || true
 
-    keystone role-create --name SwiftOperator || true
-    keystone role-create --name anotherrole || true
-    keystone role-create --name ResellerAdmin || true
-    keystone role-create --name heat_stack_user || true
+    keystone role-create --name SwiftOperator 2>/dev/null || true
+    keystone role-create --name anotherrole 2>/dev/null || true
+    keystone role-create --name heat_stack_user 2>/dev/null || true
+    keystone role-create --name heat_stack_owner 2>/dev/null || true
+    keystone role-create --name ResellerAdmin 2>/dev/null || true
 
-    keystone user-role-add --role SwiftOperator --user demo --tenant demo || true
-    keystone user-role-add --role anotherrole --user demo --tenant demo || true
-    keystone user-role-add --role admin --user admin --tenant demo || true
+    keystone user-role-add --role SwiftOperator --user demo --tenant demo 2>/dev/null || true
+    keystone user-role-add --role anotherrole --user demo --tenant demo 2>/dev/null || true
+    keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true
 
     message "Create flavor 'm1.tempest-nano' for Tempest tests"
     nova flavor-create m1.tempest-nano 0 64 0 1 || true
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
     nova flavor-create m1.tempest-micro 42 128 0 1 || true
+
+    message "Upload CirrOS image for Tempest tests"
+    if [ ! "$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64)" ]; then
+        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true || true
+    else
+        message "CirrOS image for Tempest tests already uploaded!"
+    fi
 }
 
 main() {
     install_system_requirements
     install_python27_pip_virtualenv
-    init_cluster_variables
+    init_cluster_variables "$@"
     configure_env
     setup_virtualenv
     install_tempest
     install_helpers
+    add_public_bind_to_keystone_haproxy_conf "$@"
     prepare_cloud
 }
 
-main
+main "$@"

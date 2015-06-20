@@ -1,0 +1,42 @@
+
+# Swift
+- tempest.api.object_storage.test_account_bulk.BulkTest.test_bulk_delete[gate,id-c075e682-0d2a-43b2-808d-4116200d736d]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_account_bulk.BulkTest.test_extract_archive[gate,id-a407de51-1983-47cc-9f14-47c2b059413c]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_account_bulk.BulkTest.test_bulk_delete_by_POST[gate,id-dbea2bcb-efbb-4674-ac8a-a5a0e33d1d79]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_account_quotas_negative.AccountQuotasNegativeTest.test_user_modify_quota[gate,id-d1dc5076-555e-4e6d-9697-28f1fe976324,negative,smoke]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_container_quotas.ContainerQuotasTest.test_upload_large_object[gate,id-22eeeb2b-3668-4160-baef-44790f65a5a0,smoke]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_container_quotas.ContainerQuotasTest.test_upload_too_many_objects[gate,id-3a387039-697a-44fc-a9c0-935de31f426b,smoke]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_container_staticweb.StaticWebTest.test_web_index[id-c1f055ab-621d-4a6a-831f-846fcb578b8b]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_container_staticweb.StaticWebTest.test_web_listing_css[id-bc37ec94-43c8-4990-842e-0e5e02fc8926]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_container_sync_middleware.ContainerSyncMiddlewareTest.test_container_synchronization[id-ea4645a1-d147-4976-82f7-e5a7a3065f80,slow]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_crossdomain.CrossdomainTest.test_get_crossdomain_policy[id-d1b8b031-b622-4010-82f9-ff78a9e915c7]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_formpost.ObjectFormPostTest.test_post_object_using_form[gate,id-80fac02b-6e54-4f7b-be0d-a965b5cbef76]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_formpost_negative.ObjectFormPostNegativeTest.test_post_object_using_form_invalid_signature[gate,id-b277257f-113c-4499-b8d1-5fead79f7360]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_formpost_negative.ObjectFormPostNegativeTest.test_post_object_using_form_expired[gate,id-d3fb3c4d-e627-48ce-9379-a1631f21336d,negative]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_slo.ObjectSloTest.test_delete_large_object[gate,id-87b6dfa1-abe9-404d-8bf0-6c3751e6aa77]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_slo.ObjectSloTest.test_list_large_object_metadata[gate,id-e69ad766-e1aa-44a2-bdd2-bf62c09c1456]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_slo.ObjectSloTest.test_retrieve_large_object[gate,id-49bc49bc-dd1b-4c0f-904e-d9f10b830ee8]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_slo.ObjectSloTest.test_upload_manifest[gate,id-2c3f24a6-36e8-4711-9aa2-800ee1fc7b5b]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_temp_url.ObjectTempUrlTest.test_get_object_using_temp_url_with_inline_query_parameter[gate,id-9d9cfd90-708b-465d-802c-e4a8090b823d]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_temp_url_negative.ObjectTempUrlNegativeTest.test_get_object_after_expiration_time[gate,id-5a583aca-c804-41ba-9d9a-e7be132bdf0b,negative]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765
+- tempest.api.object_storage.test_object_version.ContainerTest.test_versioned_container[gate,id-a151e158-dcbf-4a1f-a1e7-46cd65895a6f,smoke]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1430765

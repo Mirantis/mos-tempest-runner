@@ -1,0 +1,12 @@
+
+# Nova
+- tempest.api.compute.servers.test_server_actions.ServerActionsTestJSON.test_resize_server_revert[gate,id-c03aab19-adb1-44f5-917d-c419577e9e68]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1405658
+- tempest.api.compute.servers.test_server_actions.ServerActionsTestJSON.test_shelve_unshelve_server[gate,id-77eba8e0-036e-4635-944b-f7a8f3b78dc9]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1423651
+- tempest.api.compute.servers.test_servers_negative.ServersNegativeTestJSON.test_shelve_shelved_server[gate,id-443e4f9b-e6bf-4389-b601-3a710f15fddd,negative]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1423651
+
+# Scenario Tests
+- tempest.scenario.test_shelve_instance.TestShelveInstance.test_shelve_instance[compute,id-1164e700-0af0-4a4c-8792-35909a88743c,image,network]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1423651
