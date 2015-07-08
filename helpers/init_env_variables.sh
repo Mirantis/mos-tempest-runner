@@ -27,3 +27,12 @@ message() {
 error() {
     printf "\e[31mError: %s\e[0m\n" "${*}" >&2
 }
+
+remote_cli() {
+    if [ -z ${CONTROLLER_HOST} ]
+    then
+        error "Controller not found. Please specify CONTROLLER_HOST variable"
+    else
+        ssh ${CONTROLLER_HOST} ". openrc;$@"
+    fi
+}
