@@ -31,7 +31,7 @@ add_shouldfail_tests_for_swift() {
 }
 
 add_workaround_for_bug_1427782() {
-    # TODO(ylobankov): remove this workaround after the bug #1427782 is fixed
+    # TODO(ylobankov): remove this workaround after the bug #1427782 is fixed.
     local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
     if [ "${controller_os}" = "CentOS" -a ! "$(cat ${SHOULDFAIL_FILE} | grep ImagesOneServerTestJSON)" ]; then
             cat >> ${SHOULDFAIL_FILE} <<EOF
