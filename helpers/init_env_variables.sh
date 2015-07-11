@@ -29,8 +29,7 @@ error() {
 }
 
 remote_cli() {
-    if [ -z ${CONTROLLER_HOST} ]
-    then
+    if [ -z ${CONTROLLER_HOST} ]; then
         error "Controller not found. Please specify CONTROLLER_HOST variable"
     else
         ssh ${CONTROLLER_HOST} ". openrc;$@"
