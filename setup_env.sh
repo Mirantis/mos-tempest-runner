@@ -4,7 +4,7 @@ TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/helpers/init_env_variables.sh
 
 install_system_requirements() {
-    message "Enabling default CentOS repo"
+    message "Enable default CentOS repo"
     yum -y reinstall centos-release
 
     message "Installing system requirements"
@@ -150,14 +150,6 @@ install_tempest() {
     git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/14 && git cherry-pick FETCH_HEAD || true
 
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
-    # TODO(ylobankov): remove this workaround after the bug #1410622 is fixed.
-    # This is the workaround to avoid failures for EC2 tests. According to
-    # the bug #1408987 reported to Nova these tests permanently fail since
-    # the boto 2.35.0 has been released. The bug #1408987 was fixed and
-    # backported to the Juno release. However the issue has not been completely
-    # resolved. The corresponding bug #1410622 was reported to Nova and was
-    # fixed only for Kilo and Juno 2014.2.3.
-    ${VIRTUALENV_DIR}/bin/pip install boto==2.34.0
     message "Tempest has been installed into ${tempest_dir}"
 
     cp ${TOP_DIR}/tempest/configure_tempest.sh ${VIRTUALENV_DIR}/bin/configure_tempest
