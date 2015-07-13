@@ -30,8 +30,9 @@ add_shouldfail_tests_for_swift() {
     fi
 }
 
-add_workaround_for_bug_1427782() {
-    # TODO(ylobankov): remove this workaround after the bug #1427782 is fixed.
+# TODO(ylobankov): Remove this function after the bug #1427782 is fixed in MOS 6.1.
+add_shouldfail_test_due_to_bug_1427782() {
+    # NOTE(ylobankov): The test below fails only for MOS deployed with CentOS.
     local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
     if [ "${controller_os}" = "CentOS" -a ! "$(cat ${SHOULDFAIL_FILE} | grep ImagesOneServerTestJSON)" ]; then
             cat >> ${SHOULDFAIL_FILE} <<EOF
@@ -57,8 +58,7 @@ choose_and_configure_shouldfail_file() {
             # Use default "shouldfail" file
             cp ${DEST}/shouldfail/default_shouldfail.yaml ${SHOULDFAIL_FILE}
         fi
-
-        add_workaround_for_bug_1427782
+        add_shouldfail_test_due_to_bug_1427782
     else
         message "'Shouldfail' file already exists!"
     fi

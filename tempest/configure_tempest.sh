@@ -72,7 +72,6 @@ flavor_ref_alt = 42
 ssh_user = cirros
 image_ssh_user = cirros
 image_alt_ssh_user = cirros
-fixed_network_name=net04
 ssh_channel_timeout = 300
 build_timeout = 300
 

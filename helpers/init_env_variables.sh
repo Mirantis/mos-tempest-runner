@@ -17,7 +17,9 @@ CIRROS_DISK_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros
 
 KEYSTONE_HAPROXY_CONFIG_PATH="${KEYSTONE_HAPROXY_CONFIG_PATH:-/etc/haproxy/conf.d/030-keystone-2.cfg}"
 
-TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-}"
+# Tempest commit ID from Jun 8, 2015. This commit ID was used for MOS 6.1 acceptance testing.
+default_tempest_commit_id="0f1b1b76cc5a0ced4e36941b394c7bd5ae8fc614"
+TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-${default_tempest_commit_id}}"
 
 # Helper functions
 message() {
