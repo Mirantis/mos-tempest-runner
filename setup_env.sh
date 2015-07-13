@@ -147,7 +147,7 @@ install_tempest() {
         git checkout ${TEMPEST_COMMIT_ID}
     fi
     # NOTE(ylobankov): We have to cherry-pick this patch to fix the Tempest
-    # bug 1465676 in the case of using older Tempest versions.
+    # bug 1465676 in the case of using Tempest version where this fix is not present.
     git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/14 && git cherry-pick FETCH_HEAD || true
 
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
