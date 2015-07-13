@@ -143,10 +143,11 @@ install_tempest() {
     rm -rf ${tempest_dir}
     git clone git://git.openstack.org/openstack/tempest.git
     cd ${tempest_dir}
-    if [ ! -z "${TEMPEST_COMMIT_ID}" ]; then
+    if [ "${TEMPEST_COMMIT_ID}" != "master" ]; then
         git checkout ${TEMPEST_COMMIT_ID}
     fi
-    # TODO(ylobankov): remove this workaround after the bug 1465676 is fixed.
+    # NOTE(ylobankov): We have to cherry-pick this patch to fix the Tempest
+    # bug 1465676 in the case of using older Tempest versions.
     git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/14 && git cherry-pick FETCH_HEAD || true
 
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt

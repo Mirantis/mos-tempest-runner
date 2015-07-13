@@ -60,10 +60,6 @@ ec2_url = ${OS_EC2_URL}
 s3_url = ${OS_S3_URL}
 http_socket_timeout = 30
 
-[cli]
-cli_dir = ${DEST}/.venv/bin
-has_manage = false
-
 [compute]
 image_ref = ${IMAGE_REF}
 image_ref_alt = ${IMAGE_REF_ALT}
@@ -72,7 +68,6 @@ flavor_ref_alt = 42
 ssh_user = cirros
 image_ssh_user = cirros
 image_alt_ssh_user = cirros
-fixed_network_name=net04
 ssh_channel_timeout = 300
 build_timeout = 300
 
@@ -80,6 +75,7 @@ build_timeout = 300
 live_migration = false
 resize = true
 vnc_console = true
+preserve_ports = true
 
 [dashboard]
 login_url = ${OS_DASHBOARD_URL}auth/login/
