@@ -48,6 +48,8 @@ cleanup_cloud() {
 
     message "Delete the uploaded CirrOS image"
     remote_cli glance image-delete cirros-${CIRROS_VERSION}-x86_64 || true
+
+    message "Cleanup is done!"
 }
 
 cleanup_cloud
