@@ -70,6 +70,7 @@ collect_results() {
 
 run() {
     message "Running Tempest tests"
+    message "Tempest commit ID is ${TEMPEST_COMMIT_ID}"
     cd ${DEST}/tempest
     configure_tempest
     configure_shouldfail_file
