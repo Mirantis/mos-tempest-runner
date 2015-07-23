@@ -146,9 +146,6 @@ install_tempest() {
     if [ "${TEMPEST_COMMIT_ID}" != "master" ]; then
         git checkout ${TEMPEST_COMMIT_ID}
     fi
-    # NOTE(ylobankov): We have to cherry-pick this patch to fix the Tempest
-    # bug 1465676 in the case of using older Tempest versions.
-    git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/14 && git cherry-pick FETCH_HEAD || true
 
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
     message "Tempest has been installed into ${tempest_dir}"

@@ -19,8 +19,8 @@ init_some_config_options() {
         PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none | tail -1)"
     fi
 
-    IMAGE_REF="$(glance image-list | grep TestVM | awk '{print $2}')"
-    IMAGE_REF_ALT="$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
+    IMAGE_REF="$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
+    IMAGE_REF_ALT="$(glance image-list | grep TestVM | awk '{print $2}')"
 
     OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
@@ -97,8 +97,8 @@ public_network_id = ${PUBLIC_NETWORK_ID}
 
 [network-feature-enabled]
 api_extensions = security-group,l3_agent_scheduler,ext-gw-mode,binding,metering,agent,quotas,dhcp_agent_scheduler,l3-ha,multi-provider,external-net,router,allowed-address-pairs,extraroute,extra_dhcp_opt,provider,dvr
-ipv6_subnet_attributes = True
-ipv6 = True
+ipv6_subnet_attributes = true
+ipv6 = true
 
 [object-storage]
 operator_role = SwiftOperator
@@ -122,6 +122,9 @@ swift = $(check_service_availability "swift")
 
 [telemetry]
 too_slow_to_test = false
+
+[validation]
+run_validation = true
 
 [volume]
 build_timeout = 300
