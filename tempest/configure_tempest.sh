@@ -30,10 +30,13 @@ init_some_config_options() {
         OS_DASHBOARD_URL=${OS_DASHBOARD_URL/horizon/dashboard}
     fi
 
-    CINDER_STORAGE_PROTOCOL="iSCSI"
+    VOLUMES_STORAGE_PROTOCOL="iSCSI"
+    VOLUMES_BACKUP_ENABLED="false"
     local volume_driver="$(ssh ${CONTROLLER_HOST} "cat /etc/cinder/cinder.conf | grep volume_driver" 2>/dev/null)"
     if [ "$(echo ${volume_driver} | grep -o RBDDriver)" ]; then
-        CINDER_STORAGE_PROTOCOL="ceph"
+        VOLUMES_STORAGE_PROTOCOL="ceph"
+        # In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
+        VOLUMES_BACKUP_ENABLED="true"
     fi
 }
 
@@ -128,10 +131,11 @@ run_validation = true
 
 [volume]
 build_timeout = 300
-storage_protocol = ${CINDER_STORAGE_PROTOCOL}
+storage_protocol = ${VOLUMES_STORAGE_PROTOCOL}
 
 [volume-feature-enabled]
-backup = false
+# In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
+backup = ${VOLUMES_BACKUP_ENABLED}
 EOF
     fi
 
