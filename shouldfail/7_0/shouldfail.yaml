@@ -2,3 +2,9 @@
 - tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest.test_create_and_get_delete_bucket[id-4678525d-8da0-4518-81c1-f1f67d595b00]
 - tempest.thirdparty.boto.test_s3_objects.S3BucketsTest.test_create_get_delete_object[id-4eea567a-b46a-405b-a475-6097e1faebde]
 - tearDownClass (tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest)
+
+# Cinder
+- tempest.api.volume.admin.test_volumes_backup.VolumesBackupsV1Test.test_volume_backup_export_import[id-a99c54a1-dd80-4724-8a13-13bf58d4068d]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1478062
+- tempest.api.volume.admin.test_volumes_backup.VolumesBackupsV2Test.test_volume_backup_export_import[id-a99c54a1-dd80-4724-8a13-13bf58d4068d]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1478062
