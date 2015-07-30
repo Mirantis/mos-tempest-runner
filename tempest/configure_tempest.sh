@@ -94,6 +94,7 @@ tenant_name = demo
 username = demo
 uri = ${OS_AUTH_URL}
 uri_v3 = ${OS_AUTH_URL/v2.0/v3}
+ca_certificates_file=${OS_CACERT}
 
 [network]
 public_network_id = ${PUBLIC_NETWORK_ID}

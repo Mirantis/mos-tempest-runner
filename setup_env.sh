@@ -126,6 +126,10 @@ EOF
     echo "export COMPUTE_HOST='${COMPUTE_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export OS_AUTH_URL='${OS_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
     echo "export USER_NAME='${USER_NAME}'" >> ${USER_HOME_DIR}/openrc
+    if [ ! -z "${SSL}" ]; then
+        scp ${CONTROLLER_HOST}:${REMOTE_CA_CERT} ${LOCAL_CA_CERT}
+        sed -i "s,${REMOTE_CA_CERT},${LOCAL_CA_CERT},g" ${USER_HOME_DIR}/openrc
+    fi
 
     chown -R ${USER_NAME} ${USER_HOME_DIR}
 }
@@ -189,7 +193,12 @@ add_public_bind_to_keystone_haproxy_conf() {
     if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
         local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
         for controller_node_id in ${controller_node_ids}; do
-            ssh node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
+            if [ ! -z "${SSL}" ]; then
+                BIND_STRING="  bind ${OS_AUTH_IP}:35357 ssl crt /etc/haproxy/public_api.pem"
+            else
+                BIND_STRING="  bind ${OS_AUTH_IP}:35357"
+            fi
+            ssh node-${controller_node_id} "echo ${BIND_STRING}  >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
         done
 
         message "Restart haproxy"
