@@ -84,6 +84,9 @@ preserve_ports = true
 login_url = ${OS_DASHBOARD_URL}auth/login/
 dashboard_url = ${OS_DASHBOARD_URL}project/
 
+[data_processing-feature-enabled]
+plugins = vanilla,cdh,mapr,spark,ambari
+
 [identity]
 admin_domain_name = Default
 admin_password = ${OS_PASSWORD}
