@@ -55,7 +55,6 @@ lock_path = /tmp
 log_file = tempest.log
 
 [auth]
-tempest_roles = _member_
 allow_tenant_isolation = true
 
 [boto]
@@ -98,6 +97,9 @@ username = demo
 uri = ${OS_AUTH_URL}
 uri_v3 = ${OS_AUTH_URL/v2.0/v3}
 
+[image-feature-enabled]
+deactivate_image = true
+
 [network]
 public_network_id = ${PUBLIC_NETWORK_ID}
 
@@ -139,6 +141,7 @@ storage_protocol = ${VOLUMES_STORAGE_PROTOCOL}
 [volume-feature-enabled]
 # In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
 backup = ${VOLUMES_BACKUP_ENABLED}
+bootable = true
 EOF
     fi
 
