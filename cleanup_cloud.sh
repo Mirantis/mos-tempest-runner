@@ -4,7 +4,7 @@ TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/helpers/init_env_variables.sh
 
 CONTROLLER_HOST="node-$(fuel node "$@" | grep controller | awk '{print $1}' | head -1)"
-TOKEN="$(ssh ${CONTROLLER_HOST} egrep "^admin_token.*" /etc/keystone/keystone.conf 2> /dev/null |cut -d'=' -f2)"
+TOKEN=$(ssh ${CONTROLLER_HOST} egrep "^admin_token.*" /etc/keystone/keystone.conf 2> /dev/null |cut -d'=' -f2)
 OS_AUTH_URL="http://$(remote_cli cat /etc/astute.yaml |grep public_vip|awk '{print $2}'):5000/v2.0"
 
 
