@@ -21,6 +21,11 @@ KEYSTONE_HAPROXY_CONFIG_PATH="${KEYSTONE_HAPROXY_CONFIG_PATH:-/etc/haproxy/conf.
 default_tempest_commit_id="0f1b1b76cc5a0ced4e36941b394c7bd5ae8fc614"
 TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-${default_tempest_commit_id}}"
 
+# SSL options
+REMOTE_CA_CERT="${REMOTE_CA_CERT:-/etc/haproxy/ca.pem}"
+LOCAL_CA_CERT="${LOCAL_CA_CERT:-${USER_HOME_DIR}/ca.pem}"
+SSL="${SSL:-}"
+
 # Helper functions
 message() {
     printf "\e[33m%s\e[0m\n" "${1}"
