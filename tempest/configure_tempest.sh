@@ -15,12 +15,12 @@ check_service_availability() {
 init_some_config_options() {
     IS_NEUTRON_AVAILABLE=$(check_service_availability "neutron")
     if [ "${IS_NEUTRON_AVAILABLE}" = "true" ]; then
-        PUBLIC_NETWORK_ID="$(neutron net-list --router:external=true -f csv -c id --quote none | tail -1)"
-        PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none | tail -1)"
+        PUBLIC_NETWORK_ID="$(neutron net-list --router:external=true -f csv -c id --quote none 2>/dev/null | tail -1)"
+        PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none 2>/dev/null | tail -1)"
     fi
 
-    IMAGE_REF="$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
-    IMAGE_REF_ALT="$(glance image-list | grep TestVM | awk '{print $2}')"
+    IMAGE_REF="$(glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
+    IMAGE_REF_ALT="$(glance image-list 2>/dev/null | grep TestVM | awk '{print $2}')"
 
     OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
@@ -50,12 +50,13 @@ create_config_file() {
         cat > ${tempest_conf} <<EOF
 [DEFAULT]
 debug = ${DEBUG:-false}
+verbose = ${VERBOSE:-false}
 use_stderr = ${USE_STDERR:-false}
-lock_path = /tmp
+log_dir = ${TEMPEST_REPORTS_DIR}
 log_file = tempest.log
 
-[auth]
-allow_tenant_isolation = true
+[oslo_concurrency]
+lock_path = /tmp
 
 [boto]
 ec2_url = ${OS_EC2_URL}
@@ -70,7 +71,6 @@ flavor_ref_alt = 42
 ssh_user = cirros
 image_ssh_user = cirros
 image_alt_ssh_user = cirros
-ssh_channel_timeout = 300
 build_timeout = 300
 
 [compute-feature-enabled]
@@ -96,6 +96,7 @@ tenant_name = demo
 username = demo
 uri = ${OS_AUTH_URL}
 uri_v3 = ${OS_AUTH_URL/v2.0/v3}
+ca_certificates_file = ${OS_CACERT}
 
 [image-feature-enabled]
 deactivate_image = true
