@@ -56,7 +56,7 @@ init_cluster_variables() {
     message "Fuel release is ${FUEL_RELEASE}"
 
     OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
-    OS_PUBLIC_IP="$(ssh node-1 "grep public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
+    OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
     if [ "${TLS}" = "true" -o "${TLS}" = "yes" ]; then
         local os_tls_hostname="$(echo ${OS_PUBLIC_AUTH_URL} | sed 's/https:\/\///;s|:.*||')"
         echo "${OS_PUBLIC_IP} ${os_tls_hostname}" >> /etc/hosts
