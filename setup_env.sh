@@ -57,10 +57,6 @@ init_cluster_variables() {
 
     OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
     OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
-    if [ "${TLS}" = "true" -o "${TLS}" = "yes" ]; then
-        local os_tls_hostname="$(echo ${OS_PUBLIC_AUTH_URL} | sed 's/https:\/\///;s|:.*||')"
-        echo "${OS_PUBLIC_IP} ${os_tls_hostname}" >> /etc/hosts
-    fi
     message "OS_PUBLIC_AUTH_URL = ${OS_PUBLIC_AUTH_URL}"
     message "OS_PUBLIC_IP = ${OS_PUBLIC_IP}"
 }
@@ -186,10 +182,10 @@ install_helpers() {
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${TOP_DIR}/requirements.txt
 }
 
-add_public_bind_to_keystone_haproxy_conf() {
+add_public_bind_to_keystone_haproxy_conf_for_admin_port() {
     # Keystone operations require admin endpoint which is internal and not
-    # accessible from the Fuel master node. So we need to make all Keystone
-    # endpoints accessible from the Fuel master node. Before we do it, we need
+    # accessible from the Fuel master node. So we need to make Keystone admin
+    # endpoint accessible from the Fuel master node. Before we do it, we need
     # to make haproxy listen to Keystone admin port 35357 on interface with public IP
     message "Add public bind to Keystone haproxy config for admin port on all controllers"
     if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_PUBLIC_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
@@ -207,6 +203,21 @@ add_public_bind_to_keystone_haproxy_conf() {
         ssh ${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
     else
         message "Public bind already exists!"
+    fi
+}
+
+add_dns_entry_for_tls () {
+    message "Adding DNS entry for TLS"
+    if [ "${TLS}" = "true" -o "${TLS}" = "yes" ]; then
+        local os_tls_hostname="$(echo ${OS_PUBLIC_AUTH_URL} | sed 's/https:\/\///;s|:.*||')"
+        local dns_entry="$(grep "${OS_PUBLIC_IP} ${os_tls_hostname}" /etc/hosts)"
+        if [ ! "${dns_entry}" ]; then
+            echo "${OS_PUBLIC_IP} ${os_tls_hostname}" >> /etc/hosts
+        else
+            message "DNS entry for TLS is already added!"
+        fi
+    else
+        message "TLS is not enabled. Nothing to do"
     fi
 }
 
@@ -244,13 +255,14 @@ prepare_cloud() {
     keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true
 
     message "Create flavor 'm1.tempest-nano' for Tempest tests"
-    nova flavor-create m1.tempest-nano 0 64 0 1 || true
+    nova flavor-create m1.tempest-nano 0 64 0 1 2>/dev/null || true
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
-    nova flavor-create m1.tempest-micro 42 128 0 1 || true
+    nova flavor-create m1.tempest-micro 42 128 0 1 2>/dev/null || true
 
     message "Upload CirrOS image for Tempest tests"
-    if [ ! "$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64)" ]; then
-        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true || true
+    local cirros_image="$(glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64)"
+    if [ ! "${cirros_image}" ]; then
+        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true 2>/dev/null || true
     else
         message "CirrOS image for Tempest tests already uploaded!"
     fi
@@ -264,7 +276,8 @@ main() {
     setup_virtualenv
     install_tempest
     install_helpers
-    add_public_bind_to_keystone_haproxy_conf "$@"
+    add_public_bind_to_keystone_haproxy_conf_for_admin_port "$@"
+    add_dns_entry_for_tls
     prepare_cloud
 }
 
