@@ -59,6 +59,15 @@ init_cluster_variables() {
     OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
     message "OS_PUBLIC_AUTH_URL = ${OS_PUBLIC_AUTH_URL}"
     message "OS_PUBLIC_IP = ${OS_PUBLIC_IP}"
+
+    local htts_public_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep https")"
+    if [ "${htts_public_endpoint}" ]; then
+        TLS_ENABLED="yes"
+        message "TLS_ENABLED = yes"
+    else
+        TLS_ENABLED="no"
+        message "TLS_ENABLED = no"
+    fi
 }
 
 configure_env() {
@@ -127,7 +136,7 @@ EOF
     echo "export COMPUTE_HOST='${COMPUTE_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export OS_AUTH_URL='${OS_PUBLIC_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
     echo "export USER_NAME='${USER_NAME}'" >> ${USER_HOME_DIR}/openrc
-    if [ "${TLS}" = "true" -o "${TLS}" = "yes" ]; then
+    if [ "${TLS_ENABLED}" = "yes" ]; then
         scp ${CONTROLLER_HOST}:${REMOTE_CA_CERT} ${LOCAL_CA_CERT}
         echo "export OS_CACERT='${LOCAL_CA_CERT}'" >> ${USER_HOME_DIR}/openrc
     fi
@@ -191,7 +200,7 @@ add_public_bind_to_keystone_haproxy_conf_for_admin_port() {
     if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_PUBLIC_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
         local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
         local bind_string="  bind ${OS_PUBLIC_IP}:35357"
-        if [ "${TLS}" = "true" -o "${TLS}" = "yes" ]; then
+        if [ "${TLS_ENABLED}" = "yes" ]; then
             bind_string="  bind ${OS_PUBLIC_IP}:35357 ssl crt ${REMOTE_CA_CERT}"
         fi
         for controller_node_id in ${controller_node_ids}; do
@@ -208,7 +217,7 @@ add_public_bind_to_keystone_haproxy_conf_for_admin_port() {
 
 add_dns_entry_for_tls () {
     message "Adding DNS entry for TLS"
-    if [ "${TLS}" = "true" -o "${TLS}" = "yes" ]; then
+    if [ "${TLS_ENABLED}" = "yes" ]; then
         local os_tls_hostname="$(echo ${OS_PUBLIC_AUTH_URL} | sed 's/https:\/\///;s|:.*||')"
         local dns_entry="$(grep "${OS_PUBLIC_IP} ${os_tls_hostname}" /etc/hosts)"
         if [ ! "${dns_entry}" ]; then
