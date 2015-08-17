@@ -112,6 +112,10 @@ ipv6 = true
 [object-storage]
 operator_role = SwiftOperator
 
+[orchestration]
+max_template_size = 5440000
+max_resources_per_stack = 20000
+
 [scenario]
 img_dir = ${DEST}/.venv/files
 ami_img_file = cirros-0.3.2-x86_64-blank.img
