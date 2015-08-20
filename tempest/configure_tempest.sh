@@ -24,11 +24,6 @@ init_some_config_options() {
 
     OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
-    OS_DASHBOARD_URL=${OS_AUTH_URL/:5000\/v2.0/\/horizon\/}
-    local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
-    if [ "${controller_os}" = "CentOS" ]; then
-        OS_DASHBOARD_URL=${OS_DASHBOARD_URL/horizon/dashboard}
-    fi
 
     VOLUMES_STORAGE_PROTOCOL="iSCSI"
     VOLUMES_BACKUP_ENABLED="false"
@@ -80,8 +75,7 @@ vnc_console = true
 preserve_ports = true
 
 [dashboard]
-login_url = ${OS_DASHBOARD_URL}auth/login/
-dashboard_url = ${OS_DASHBOARD_URL}project/
+dashboard_url = http://${OS_PUBLIC_IP}/
 
 [data_processing-feature-enabled]
 plugins = vanilla,cdh,mapr,spark,ambari

@@ -135,6 +135,7 @@ EOF
     echo "export CONTROLLER_HOST='${CONTROLLER_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export COMPUTE_HOST='${COMPUTE_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export OS_AUTH_URL='${OS_PUBLIC_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
+    echo "export OS_PUBLIC_IP='${OS_PUBLIC_IP}'" >> ${USER_HOME_DIR}/openrc
     echo "export USER_NAME='${USER_NAME}'" >> ${USER_HOME_DIR}/openrc
     if [ "${TLS_ENABLED}" = "yes" ]; then
         scp ${CONTROLLER_HOST}:${REMOTE_CA_CERT} ${LOCAL_CA_CERT}
