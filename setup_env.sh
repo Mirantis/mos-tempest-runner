@@ -272,7 +272,12 @@ prepare_cloud() {
     message "Upload CirrOS image for Tempest tests"
     local cirros_image="$(glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64)"
     if [ ! "${cirros_image}" ]; then
-        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true 2>/dev/null || true
+        if [ "$(glance --version 2>&1 | sed -e 's/\.//g'| head -c3)" -ge "100" ]; then
+            public="--visibility public"
+        else
+            public="--is-public=true"
+        fi
+        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare ${public} --progress 2>/dev/null || true
     else
         message "CirrOS image for Tempest tests already uploaded!"
     fi
