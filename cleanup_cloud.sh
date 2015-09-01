@@ -3,37 +3,52 @@
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/helpers/init_env_variables.sh
 
+CONTROLLER_HOST="node-$(fuel node "$@" | grep controller | awk '{print $1}' | head -1)"
+ADMIN_TOKEN="$(ssh ${CONTROLLER_HOST} egrep "^admin_token.*" /etc/keystone/keystone.conf 2>/dev/null | cut -d'=' -f2)"
+OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
+
+
+keystone_adm() {
+    remote_cli keystone --os-token ${ADMIN_TOKEN} --os-endpoint ${OS_PUBLIC_AUTH_URL/5000/35357} $@
+}
+
+restore_service_catalog() {
+    message "Revert Keystone endpoints"
+    local identity_service_id="$(keystone_adm service-list | grep identity | awk '{print $2}')"
+    local old_endpoint="$(keystone_adm endpoint-list | grep ${identity_service_id}|awk '{print $2}')"
+    local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep internalURL | awk '{print \$4}'")"
+    keystone_adm endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_PUBLIC_AUTH_URL} --adminurl ${internal_url/5000/35357} --internalurl ${internal_url} 2>/dev/null
+    if [ ! -z ${old_endpoint} ]; then
+        keystone_adm endpoint-delete ${old_endpoint} 2>/dev/null
+    fi
+}
+
 cleanup_cloud() {
-    source ${VIRTUALENV_DIR}/bin/activate
-    source ${USER_HOME_DIR}/openrc
+
+    restore_service_catalog
 
     message "Delete the created user, tenant and roles"
-    keystone user-role-remove --role SwiftOperator --user demo --tenant demo 2>/dev/null || true
-    keystone user-role-remove --role anotherrole --user demo --tenant demo 2>/dev/null || true
-    keystone user-role-remove --role admin --user admin --tenant demo 2>/dev/null || true
+    keystone_adm user-role-remove --role SwiftOperator --user demo --tenant demo 2>/dev/null || true
+    keystone_adm user-role-remove --role anotherrole --user demo --tenant demo 2>/dev/null || true
+    keystone_adm user-role-remove --role admin --user admin --tenant demo 2>/dev/null || true
 
-    keystone role-delete SwiftOperator 2>/dev/null || true
-    keystone role-delete anotherrole 2>/dev/null || true
-    keystone role-delete heat_stack_user 2>/dev/null || true
-    keystone role-delete heat_stack_owner 2>/dev/null || true
-    keystone role-delete ResellerAdmin 2>/dev/null || true
+    keystone_adm role-delete SwiftOperator 2>/dev/null || true
+    keystone_adm role-delete anotherrole 2>/dev/null || true
+    keystone_adm role-delete heat_stack_user 2>/dev/null || true
+    keystone_adm role-delete heat_stack_owner 2>/dev/null || true
+    keystone_adm role-delete ResellerAdmin 2>/dev/null || true
 
-    keystone user-delete demo 2>/dev/null || true
-    keystone tenant-delete demo 2>/dev/null || true
+    keystone_adm user-delete demo 2>/dev/null || true
+    keystone_adm tenant-delete demo 2>/dev/null || true
 
     message "Delete the created flavors"
-    nova flavor-delete m1.tempest-nano || true
-    nova flavor-delete m1.tempest-micro || true
+    remote_cli nova flavor-delete m1.tempest-nano || true
+    remote_cli nova flavor-delete m1.tempest-micro || true
 
     message "Delete the uploaded CirrOS image"
-    glance image-delete cirros-${CIRROS_VERSION}-x86_64 || true
+    remote_cli glance image-delete cirros-${CIRROS_VERSION}-x86_64 || true
 
-    message "Revert Keystone endpoints"
-    local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
-    local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
-    local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
-    ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${internal_url/5000/35357} --internalurl ${internal_url} 2>/dev/null"
-    ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
+    message "Cleanup is done!"
 }
 
 cleanup_cloud

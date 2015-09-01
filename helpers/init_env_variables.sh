@@ -17,7 +17,13 @@ CIRROS_DISK_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros
 
 KEYSTONE_HAPROXY_CONFIG_PATH="${KEYSTONE_HAPROXY_CONFIG_PATH:-/etc/haproxy/conf.d/030-keystone-2.cfg}"
 
-TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-}"
+# Tempest commit ID from Aug 19, 2015.
+default_tempest_commit_id="9d23f20651e694583a357f510d8d822d485bf79f"
+TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-${default_tempest_commit_id}}"
+
+# TLS related options
+REMOTE_CA_CERT="${REMOTE_CA_CERT:-/var/lib/astute/haproxy/public_haproxy.pem}"
+LOCAL_CA_CERT="${LOCAL_CA_CERT:-${USER_HOME_DIR}/public_haproxy.pem}"
 
 # Helper functions
 message() {
@@ -26,4 +32,12 @@ message() {
 
 error() {
     printf "\e[31mError: %s\e[0m\n" "${*}" >&2
+}
+
+remote_cli() {
+    if [ -z ${CONTROLLER_HOST} ]; then
+        error "Controller not found. Please specify CONTROLLER_HOST variable"
+    else
+        ssh ${CONTROLLER_HOST} ". openrc;$@"
+    fi
 }

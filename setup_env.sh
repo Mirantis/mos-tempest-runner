@@ -4,7 +4,7 @@ TOP_DIR=$(cd $(dirname "$0") && pwd)
 source ${TOP_DIR}/helpers/init_env_variables.sh
 
 install_system_requirements() {
-    message "Enabling default CentOS repo"
+    message "Enable default CentOS repo"
     yum -y reinstall centos-release
 
     message "Installing system requirements"
@@ -55,9 +55,19 @@ init_cluster_variables() {
     FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}' | sed "s/'//g")"
     message "Fuel release is ${FUEL_RELEASE}"
 
-    OS_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
-    OS_AUTH_IP="$(echo "${OS_AUTH_URL}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}')"
-    message "OS_AUTH_URL = ${OS_AUTH_URL}"
+    OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
+    OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
+    message "OS_PUBLIC_AUTH_URL = ${OS_PUBLIC_AUTH_URL}"
+    message "OS_PUBLIC_IP = ${OS_PUBLIC_IP}"
+
+    local htts_public_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep https")"
+    if [ "${htts_public_endpoint}" ]; then
+        TLS_ENABLED="yes"
+        message "TLS_ENABLED = yes"
+    else
+        TLS_ENABLED="no"
+        message "TLS_ENABLED = no"
+    fi
 }
 
 configure_env() {
@@ -124,8 +134,13 @@ EOF
     echo "export FUEL_RELEASE='${FUEL_RELEASE}'" >> ${USER_HOME_DIR}/openrc
     echo "export CONTROLLER_HOST='${CONTROLLER_HOST}'" >> ${USER_HOME_DIR}/openrc
     echo "export COMPUTE_HOST='${COMPUTE_HOST}'" >> ${USER_HOME_DIR}/openrc
-    echo "export OS_AUTH_URL='${OS_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
+    echo "export OS_AUTH_URL='${OS_PUBLIC_AUTH_URL}'" >> ${USER_HOME_DIR}/openrc
+    echo "export OS_PUBLIC_IP='${OS_PUBLIC_IP}'" >> ${USER_HOME_DIR}/openrc
     echo "export USER_NAME='${USER_NAME}'" >> ${USER_HOME_DIR}/openrc
+    if [ "${TLS_ENABLED}" = "yes" ]; then
+        scp ${CONTROLLER_HOST}:${REMOTE_CA_CERT} ${LOCAL_CA_CERT}
+        echo "export OS_CACERT='${LOCAL_CA_CERT}'" >> ${USER_HOME_DIR}/openrc
+    fi
 
     chown -R ${USER_NAME} ${USER_HOME_DIR}
 }
@@ -143,20 +158,11 @@ install_tempest() {
     rm -rf ${tempest_dir}
     git clone git://git.openstack.org/openstack/tempest.git
     cd ${tempest_dir}
-    if [ ! -z "${TEMPEST_COMMIT_ID}" ]; then
+    if [ "${TEMPEST_COMMIT_ID}" != "master" ]; then
         git checkout ${TEMPEST_COMMIT_ID}
     fi
-    # TODO(ylobankov): remove this workaround after the bug 1465676 is fixed
-    git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/1 && git cherry-pick FETCH_HEAD
+
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
-    # TODO(ylobankov): remove this workaround after the bug #1410622 is fixed.
-    # This is the workaround to avoid failures for EC2 tests. According to
-    # the bug #1408987 reported to Nova these tests permanently fail since
-    # the boto 2.35.0 has been released. The bug #1408987 was fixed and
-    # backported to the Juno release. However the issue has not been completely
-    # resolved. The corresponding bug #1410622 was reported to Nova and was
-    # fixed only for Kilo.
-    ${VIRTUALENV_DIR}/bin/pip install boto==2.34.0
     message "Tempest has been installed into ${tempest_dir}"
 
     cp ${TOP_DIR}/tempest/configure_tempest.sh ${VIRTUALENV_DIR}/bin/configure_tempest
@@ -186,16 +192,20 @@ install_helpers() {
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${TOP_DIR}/requirements.txt
 }
 
-add_public_bind_to_keystone_haproxy_conf() {
+add_public_bind_to_keystone_haproxy_conf_for_admin_port() {
     # Keystone operations require admin endpoint which is internal and not
-    # accessible from the Fuel master node. So we need to make all Keystone
-    # endpoints accessible from the Fuel master node. Before we do it, we need
+    # accessible from the Fuel master node. So we need to make Keystone admin
+    # endpoint accessible from the Fuel master node. Before we do it, we need
     # to make haproxy listen to Keystone admin port 35357 on interface with public IP
     message "Add public bind to Keystone haproxy config for admin port on all controllers"
-    if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_AUTH_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
+    if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_PUBLIC_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
         local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
+        local bind_string="  bind ${OS_PUBLIC_IP}:35357"
+        if [ "${TLS_ENABLED}" = "yes" ]; then
+            bind_string="  bind ${OS_PUBLIC_IP}:35357 ssl crt ${REMOTE_CA_CERT}"
+        fi
         for controller_node_id in ${controller_node_ids}; do
-            ssh node-${controller_node_id} "echo '  bind ${OS_AUTH_IP}:35357' >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
+            ssh node-${controller_node_id} "echo ${bind_string} >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
         done
 
         message "Restart haproxy"
@@ -203,6 +213,21 @@ add_public_bind_to_keystone_haproxy_conf() {
         ssh ${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
     else
         message "Public bind already exists!"
+    fi
+}
+
+add_dns_entry_for_tls () {
+    message "Adding DNS entry for TLS"
+    if [ "${TLS_ENABLED}" = "yes" ]; then
+        local os_tls_hostname="$(echo ${OS_PUBLIC_AUTH_URL} | sed 's/https:\/\///;s|:.*||')"
+        local dns_entry="$(grep "${OS_PUBLIC_IP} ${os_tls_hostname}" /etc/hosts)"
+        if [ ! "${dns_entry}" ]; then
+            echo "${OS_PUBLIC_IP} ${os_tls_hostname}" >> /etc/hosts
+        else
+            message "DNS entry for TLS is already added!"
+        fi
+    else
+        message "TLS is not enabled. Nothing to do"
     fi
 }
 
@@ -217,11 +242,11 @@ prepare_cloud() {
     local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
     local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
     local admin_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
-    if [ "${admin_url}" = "${OS_AUTH_URL/5000/35357}" ]; then
+    if [ "${admin_url}" = "${OS_PUBLIC_AUTH_URL/5000/35357}" ]; then
         message "Keystone endpoints already public!"
     else
         local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
-        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_AUTH_URL} --adminurl ${OS_AUTH_URL/5000/35357} --internalurl ${internal_url} 2>/dev/null"
+        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_PUBLIC_AUTH_URL} --adminurl ${OS_PUBLIC_AUTH_URL/5000/35357} --internalurl ${internal_url} 2>/dev/null"
         ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
     fi
 
@@ -240,13 +265,14 @@ prepare_cloud() {
     keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true
 
     message "Create flavor 'm1.tempest-nano' for Tempest tests"
-    nova flavor-create m1.tempest-nano 0 64 0 1 || true
+    nova flavor-create m1.tempest-nano 0 64 0 1 2>/dev/null || true
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
-    nova flavor-create m1.tempest-micro 42 128 0 1 || true
+    nova flavor-create m1.tempest-micro 42 128 0 1 2>/dev/null || true
 
     message "Upload CirrOS image for Tempest tests"
-    if [ ! "$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64)" ]; then
-        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true || true
+    local cirros_image="$(glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64)"
+    if [ ! "${cirros_image}" ]; then
+        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true 2>/dev/null || true
     else
         message "CirrOS image for Tempest tests already uploaded!"
     fi
@@ -260,7 +286,8 @@ main() {
     setup_virtualenv
     install_tempest
     install_helpers
-    add_public_bind_to_keystone_haproxy_conf "$@"
+    add_public_bind_to_keystone_haproxy_conf_for_admin_port "$@"
+    add_dns_entry_for_tls
     prepare_cloud
 }
 

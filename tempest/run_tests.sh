@@ -70,11 +70,16 @@ collect_results() {
 
 run() {
     message "Running Tempest tests"
+
     cd ${DEST}/tempest
+    message "Tempest commit ID is $(git log -n 1 | awk '/commit/ {print $2}')"
+
     configure_tempest
     configure_shouldfail_file
+
     run_tests
     collect_results
+
     cd ${TOP_DIR}
 }
 

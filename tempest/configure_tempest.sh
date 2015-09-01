@@ -15,25 +15,23 @@ check_service_availability() {
 init_some_config_options() {
     IS_NEUTRON_AVAILABLE=$(check_service_availability "neutron")
     if [ "${IS_NEUTRON_AVAILABLE}" = "true" ]; then
-        PUBLIC_NETWORK_ID="$(neutron net-list --router:external=true -f csv -c id --quote none | tail -1)"
-        PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none | tail -1)"
+        PUBLIC_NETWORK_ID="$(neutron net-list --router:external=true -f csv -c id --quote none 2>/dev/null | tail -1)"
+        PUBLIC_ROUTER_ID="$(neutron router-list --external_gateway_info:network_id=${PUBLIC_NETWORK_ID} -F id -f csv --quote none 2>/dev/null | tail -1)"
     fi
 
-    IMAGE_REF="$(glance image-list | grep TestVM | awk '{print $2}')"
-    IMAGE_REF_ALT="$(glance image-list | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
+    IMAGE_REF="$(glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64 | awk '{print $2}')"
+    IMAGE_REF_ALT="$(glance image-list 2>/dev/null | grep TestVM | awk '{print $2}')"
 
     OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
-    OS_DASHBOARD_URL=${OS_AUTH_URL/:5000\/v2.0/\/horizon\/}
-    local controller_os="$(ssh ${CONTROLLER_HOST} "cat /etc/*-release | head -n 1 | awk '{print \$1}'" 2>/dev/null)"
-    if [ "${controller_os}" = "CentOS" ]; then
-        OS_DASHBOARD_URL=${OS_DASHBOARD_URL/horizon/dashboard}
-    fi
 
-    CINDER_STORAGE_PROTOCOL="iSCSI"
+    VOLUMES_STORAGE_PROTOCOL="iSCSI"
+    VOLUMES_BACKUP_ENABLED="false"
     local volume_driver="$(ssh ${CONTROLLER_HOST} "cat /etc/cinder/cinder.conf | grep volume_driver" 2>/dev/null)"
     if [ "$(echo ${volume_driver} | grep -o RBDDriver)" ]; then
-        CINDER_STORAGE_PROTOCOL="ceph"
+        VOLUMES_STORAGE_PROTOCOL="ceph"
+        # In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
+        VOLUMES_BACKUP_ENABLED="true"
     fi
 }
 
@@ -47,22 +45,18 @@ create_config_file() {
         cat > ${tempest_conf} <<EOF
 [DEFAULT]
 debug = ${DEBUG:-false}
+verbose = ${VERBOSE:-false}
 use_stderr = ${USE_STDERR:-false}
-lock_path = /tmp
+log_dir = ${TEMPEST_REPORTS_DIR}
 log_file = tempest.log
 
-[auth]
-tempest_roles = _member_
-allow_tenant_isolation = true
+[oslo_concurrency]
+lock_path = /tmp
 
 [boto]
 ec2_url = ${OS_EC2_URL}
 s3_url = ${OS_S3_URL}
 http_socket_timeout = 30
-
-[cli]
-cli_dir = ${DEST}/.venv/bin
-has_manage = false
 
 [compute]
 image_ref = ${IMAGE_REF}
@@ -72,18 +66,19 @@ flavor_ref_alt = 42
 ssh_user = cirros
 image_ssh_user = cirros
 image_alt_ssh_user = cirros
-fixed_network_name=net04
-ssh_channel_timeout = 300
 build_timeout = 300
 
 [compute-feature-enabled]
 live_migration = false
 resize = true
 vnc_console = true
+preserve_ports = true
 
 [dashboard]
-login_url = ${OS_DASHBOARD_URL}auth/login/
-dashboard_url = ${OS_DASHBOARD_URL}project/
+dashboard_url = http://${OS_PUBLIC_IP}/
+
+[data_processing-feature-enabled]
+plugins = vanilla,cdh,mapr,spark,ambari
 
 [identity]
 admin_domain_name = Default
@@ -95,17 +90,25 @@ tenant_name = demo
 username = demo
 uri = ${OS_AUTH_URL}
 uri_v3 = ${OS_AUTH_URL/v2.0/v3}
+ca_certificates_file = ${OS_CACERT}
+
+[image-feature-enabled]
+deactivate_image = true
 
 [network]
 public_network_id = ${PUBLIC_NETWORK_ID}
 
 [network-feature-enabled]
 api_extensions = security-group,l3_agent_scheduler,ext-gw-mode,binding,metering,agent,quotas,dhcp_agent_scheduler,l3-ha,multi-provider,external-net,router,allowed-address-pairs,extraroute,extra_dhcp_opt,provider,dvr
-ipv6_subnet_attributes = True
-ipv6 = True
+ipv6_subnet_attributes = true
+ipv6 = true
 
 [object-storage]
 operator_role = SwiftOperator
+
+[orchestration]
+max_template_size = 5440000
+max_resources_per_stack = 20000
 
 [scenario]
 img_dir = ${DEST}/.venv/files
@@ -127,12 +130,17 @@ swift = $(check_service_availability "swift")
 [telemetry]
 too_slow_to_test = false
 
+[validation]
+run_validation = true
+
 [volume]
 build_timeout = 300
-storage_protocol = ${CINDER_STORAGE_PROTOCOL}
+storage_protocol = ${VOLUMES_STORAGE_PROTOCOL}
 
 [volume-feature-enabled]
-backup = false
+# In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
+backup = ${VOLUMES_BACKUP_ENABLED}
+bootable = true
 EOF
     fi
 
