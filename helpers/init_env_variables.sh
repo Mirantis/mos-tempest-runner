@@ -17,8 +17,8 @@ CIRROS_DISK_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros
 
 KEYSTONE_HAPROXY_CONFIG_PATH="${KEYSTONE_HAPROXY_CONFIG_PATH:-/etc/haproxy/conf.d/030-keystone-2.cfg}"
 
-# Tempest commit ID from Aug 19, 2015.
-default_tempest_commit_id="9d23f20651e694583a357f510d8d822d485bf79f"
+# Tempest commit ID from Sep 9, 2015.
+default_tempest_commit_id="d05a3c26cd1b492c0466737972ea05d339f224d6"
 TEMPEST_COMMIT_ID="${TEMPEST_COMMIT_ID:-${default_tempest_commit_id}}"
 
 # TLS related options
