@@ -25,13 +25,16 @@ init_some_config_options() {
     OS_EC2_URL="$(keystone catalog --service ec2 2>/dev/null | grep publicURL | awk '{print $4}')"
     OS_S3_URL="$(keystone catalog --service s3 2>/dev/null | grep publicURL | awk '{print $4}')"
 
+    ATTACH_ENCRYPTED_VOLUME="true"
     VOLUMES_STORAGE_PROTOCOL="iSCSI"
-    VOLUMES_BACKUP_ENABLED="false"
+    VOLUMES_BACKUP="false"
+
     local volume_driver="$(ssh ${CONTROLLER_HOST} "cat /etc/cinder/cinder.conf | grep volume_driver" 2>/dev/null)"
     if [ "$(echo ${volume_driver} | grep -o RBDDriver)" ]; then
+        ATTACH_ENCRYPTED_VOLUME="false"
         VOLUMES_STORAGE_PROTOCOL="ceph"
         # In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
-        VOLUMES_BACKUP_ENABLED="true"
+        VOLUMES_BACKUP="true"
     fi
 }
 
@@ -73,6 +76,7 @@ live_migration = false
 resize = true
 vnc_console = true
 preserve_ports = true
+attach_encrypted_volume = ${ATTACH_ENCRYPTED_VOLUME}
 
 [dashboard]
 dashboard_url = http://${OS_PUBLIC_IP}/
@@ -139,7 +143,7 @@ storage_protocol = ${VOLUMES_STORAGE_PROTOCOL}
 
 [volume-feature-enabled]
 # In MOS 7.0 volumes backup works only if the volumes storage protocol is Ceph
-backup = ${VOLUMES_BACKUP_ENABLED}
+backup = ${VOLUMES_BACKUP}
 bootable = true
 EOF
     fi
