@@ -56,7 +56,7 @@ init_cluster_variables() {
     message "Fuel release is ${FUEL_RELEASE}"
 
     OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
-    OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
+    OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep -w public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
     message "OS_PUBLIC_AUTH_URL = ${OS_PUBLIC_AUTH_URL}"
     message "OS_PUBLIC_IP = ${OS_PUBLIC_IP}"
 
