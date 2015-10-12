@@ -1,8 +1,0 @@
-# BOTO
-- tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest.test_create_and_get_delete_bucket[id-4678525d-8da0-4518-81c1-f1f67d595b00]
-- tempest.thirdparty.boto.test_s3_objects.S3BucketsTest.test_create_get_delete_object[id-4eea567a-b46a-405b-a475-6097e1faebde]
-- tearDownClass (tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest)
-
-# Scenario
-- tempest.scenario.test_network_v6.TestGettingAddress.test_dhcp6_stateless_from_os[compute,id-d7e1f858-187c-45a6-89c9-bdafde619a9f,network]
-- tempest.scenario.test_network_v6.TestGettingAddress.test_slaac_from_os[compute,id-2c92df61-29f0-4eaa-bee3-7c65bef62a43,network]
