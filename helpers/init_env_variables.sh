@@ -35,9 +35,5 @@ error() {
 }
 
 remote_cli() {
-    if [ -z ${CONTROLLER_HOST} ]; then
-        error "No controller host found. Please, specify CONTROLLER_HOST env variable by executing 'export CONTROLLER_HOST=<controller host>'"
-    else
-        ssh ${CONTROLLER_HOST} ". openrc; $@"
-    fi
+    ssh ${CONTROLLER_HOST} ". openrc; $@"
 }
