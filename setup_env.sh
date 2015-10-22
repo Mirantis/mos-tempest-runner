@@ -232,47 +232,45 @@ add_dns_entry_for_tls () {
 }
 
 prepare_cloud() {
-    source ${VIRTUALENV_DIR}/bin/activate
-    source ${USER_HOME_DIR}/openrc
-
     # Keystone operations require admin endpoint which is internal and not
     # accessible from the Fuel master node. So we need to make all Keystone
     # endpoints accessible from the Fuel master node
     message "Make Keystone endpoints public"
-    local identity_service_id="$(ssh ${CONTROLLER_HOST} ". openrc; keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
-    local internal_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
-    local admin_url="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
+    local identity_service_id="$(remote_cli "keystone service-list 2>/dev/null | grep identity | awk '{print \$2}'")"
+    local internal_url="$(remote_cli "keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$8}'")"
+    local admin_url="$(remote_cli "keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$10}'")"
     if [ "${admin_url}" = "${OS_PUBLIC_AUTH_URL/5000/35357}" ]; then
         message "Keystone endpoints already public!"
     else
-        local old_endpoint="$(ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
-        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_PUBLIC_AUTH_URL} --adminurl ${OS_PUBLIC_AUTH_URL/5000/35357} --internalurl ${internal_url} 2>/dev/null"
-        ssh ${CONTROLLER_HOST} ". openrc; keystone endpoint-delete ${old_endpoint} 2>/dev/null"
+        local old_endpoint="$(remote_cli "keystone endpoint-list 2>/dev/null | grep ${identity_service_id} | awk '{print \$2}'")"
+        remote_cli "keystone endpoint-create --region RegionOne --service ${identity_service_id} --publicurl ${OS_PUBLIC_AUTH_URL} --adminurl ${OS_PUBLIC_AUTH_URL/5000/35357} --internalurl ${internal_url} 2>/dev/null"
+        remote_cli "keystone endpoint-delete ${old_endpoint} 2>/dev/null"
     fi
 
     message "Create needed tenant and roles for Tempest tests"
-    keystone tenant-create --name demo 2>/dev/null || true
-    keystone user-create --tenant demo --name demo --pass demo 2>/dev/null || true
+    remote_cli "keystone tenant-create --name demo 2>/dev/null || true"
+    remote_cli "keystone user-create --tenant demo --name demo --pass demo 2>/dev/null || true"
 
-    keystone role-create --name SwiftOperator 2>/dev/null || true
-    keystone role-create --name anotherrole 2>/dev/null || true
-    keystone role-create --name heat_stack_user 2>/dev/null || true
-    keystone role-create --name heat_stack_owner 2>/dev/null || true
-    keystone role-create --name ResellerAdmin 2>/dev/null || true
+    remote_cli "keystone role-create --name SwiftOperator 2>/dev/null || true"
+    remote_cli "keystone role-create --name anotherrole 2>/dev/null || true"
+    remote_cli "keystone role-create --name heat_stack_user 2>/dev/null || true"
+    remote_cli "keystone role-create --name heat_stack_owner 2>/dev/null || true"
+    remote_cli "keystone role-create --name ResellerAdmin 2>/dev/null || true"
 
-    keystone user-role-add --role SwiftOperator --user demo --tenant demo 2>/dev/null || true
-    keystone user-role-add --role anotherrole --user demo --tenant demo 2>/dev/null || true
-    keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true
+    remote_cli "keystone user-role-add --role SwiftOperator --user demo --tenant demo 2>/dev/null || true"
+    remote_cli "keystone user-role-add --role anotherrole --user demo --tenant demo 2>/dev/null || true"
+    remote_cli "keystone user-role-add --role admin --user admin --tenant demo 2>/dev/null || true"
 
     message "Create flavor 'm1.tempest-nano' for Tempest tests"
-    nova flavor-create m1.tempest-nano 0 64 0 1 2>/dev/null || true
+    remote_cli "nova flavor-create m1.tempest-nano 0 64 0 1 2>/dev/null || true"
     message "Create flavor 'm1.tempest-micro' for Tempest tests"
-    nova flavor-create m1.tempest-micro 42 128 0 1 2>/dev/null || true
+    remote_cli "nova flavor-create m1.tempest-micro 42 128 0 1 2>/dev/null || true"
 
     message "Upload CirrOS image for Tempest tests"
-    local cirros_image="$(glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64)"
+    local cirros_image="$(remote_cli "glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64")"
     if [ ! "${cirros_image}" ]; then
-        glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true --progress 2>/dev/null || true
+        scp ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img ${CONTROLLER_HOST}:/tmp/
+        remote_cli "glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file /tmp/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true --progress 2>/dev/null || true"
     else
         message "CirrOS image for Tempest tests already uploaded!"
     fi
