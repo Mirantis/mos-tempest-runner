@@ -270,7 +270,11 @@ prepare_cloud() {
     local cirros_image="$(remote_cli "glance image-list 2>/dev/null | grep cirros-${CIRROS_VERSION}-x86_64")"
     if [ ! "${cirros_image}" ]; then
         scp ${VIRTUALENV_DIR}/files/cirros-${CIRROS_VERSION}-x86_64-disk.img ${CONTROLLER_HOST}:/tmp/
-        remote_cli "glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file /tmp/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true --progress 2>/dev/null || true"
+        if [ $(echo $FUEL_RELEASE | awk -F'.' '{print $1}') -ge "8" ]; then
+            remote_cli "glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file /tmp/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --visibility public --progress 2>/dev/null || true"
+        else
+            remote_cli "glance image-create --name cirros-${CIRROS_VERSION}-x86_64 --file /tmp/cirros-${CIRROS_VERSION}-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public=true --progress 2>/dev/null || true"
+        fi
     else
         message "CirrOS image for Tempest tests already uploaded!"
     fi
