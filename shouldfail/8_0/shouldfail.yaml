@@ -1,0 +1,4 @@
+# BOTO
+- tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest.test_create_and_get_delete_bucket[id-4678525d-8da0-4518-81c1-f1f67d595b00]
+- tempest.thirdparty.boto.test_s3_objects.S3BucketsTest.test_create_get_delete_object[id-4eea567a-b46a-405b-a475-6097e1faebde]
+- tearDownClass (tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest)

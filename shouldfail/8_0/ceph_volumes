@@ -1,0 +1,4 @@
+
+# Cinder
+- tempest.api.compute.servers.test_server_rescue_negative.ServerRescueNegativeTestJSON.test_rescued_vm_detach_volume[id-f56e465b-fe10-48bf-b75d-646cda3a8bc9,negative,volume]:
+    Fail because of https://bugs.launchpad.net/mos/+bug/1478259
