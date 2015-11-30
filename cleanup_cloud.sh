@@ -23,6 +23,17 @@ restore_service_catalog() {
     fi
 }
 
+restore_keystone_haproxy_conf() {
+    message "Restore keystone haproxy conf"
+    local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
+    for controller_node_id in ${controller_node_ids}; do
+        ssh node-${controller_node_id} "sed -i '/^bind.*pem$/d' ${KEYSTONE_HAPROXY_CONFIG_PATH}"    
+    done
+    message "Restart haproxy"
+    ssh ${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
+    ssh ${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
+}
+
 cleanup_cloud() {
 
     restore_service_catalog
@@ -47,6 +58,8 @@ cleanup_cloud() {
 
     message "Delete the uploaded CirrOS image"
     remote_cli glance image-delete cirros-${CIRROS_VERSION}-x86_64 || true
+
+    restore_keystone_haproxy_conf
 
     message "Cleanup is done!"
 }
