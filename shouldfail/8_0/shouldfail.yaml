@@ -4,5 +4,4 @@
 - tearDownClass (tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest)
 # Keystone
 - tempest.api.identity.admin.v3.test_tokens.TokensV3TestJSON.test_rescope_token[id-565fa210-1da1-4563-999b-f7b5b67cf112]
-- tempest.api.identity.admin.v3.test_users.UsersV3TestJSON.test_update_user_password[id-2d223a0e-e457-4a70-9fb1-febe027a0ff9]:
-    Both fail because of https://bugs.launchpad.net/mos/+bug/1520625
+- tempest.api.identity.admin.v3.test_users.UsersV3TestJSON.test_update_user_password[id-2d223a0e-e457-4a70-9fb1-febe027a0ff9]
