@@ -18,6 +18,7 @@ install_system_requirements() {
     yum -y install libffi-devel
     yum -y install libxml2-devel
     yum -y install libxslt-devel
+    yum -y install python-devel
 }
 
 install_python27_pip_virtualenv() {
