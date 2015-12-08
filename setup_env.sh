@@ -32,12 +32,25 @@ install_python27_pip_virtualenv() {
         cd Python-${PYTHON_VERSION}
         ./configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
         make -j5 altinstall
+    fi
 
-        message "Installing pip and virtualenv for Python 2.7"
+    message "Installing Pip 2.7"
+    if command -v pip2.7 &>/dev/null; then
+        message "Pip 2.7 already installed!"
+    else
+        message "Installing pip for Python 2.7"
         local get_pip_file="$(mktemp)"
         wget -O ${get_pip_file} ${PIP_LOCATION}
         python2.7 ${get_pip_file}
         pip2.7 install -U tox
+    fi
+
+    message "Installing virtualenv"
+    if command -v virtualenv &>/dev/null; then
+        message "virtualenv already installed!"
+    else
+        message "Installing virtualenv for Python 2.7"
+        pip2.7 install virtualenv
     fi
 }
 
