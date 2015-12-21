@@ -6,6 +6,7 @@ source ${TOP_DIR}/helpers/init_env_variables.sh
 CONTROLLER_HOST="node-$(fuel node "$@" | grep controller | awk '{print $1}' | head -1)"
 ADMIN_TOKEN="$(ssh ${CONTROLLER_HOST} egrep "^admin_token.*" /etc/keystone/keystone.conf 2>/dev/null | cut -d'=' -f2)"
 OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
+OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep -w public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
 
 
 keystone_adm() {
@@ -21,6 +22,17 @@ restore_service_catalog() {
     if [ ! -z ${old_endpoint} ]; then
         keystone_adm endpoint-delete ${old_endpoint} 2>/dev/null
     fi
+}
+
+restore_keystone_haproxy_conf() {
+    message "Restore keystone haproxy conf"
+    local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
+    for controller_node_id in ${controller_node_ids}; do
+        ssh node-${controller_node_id} "sed -i '/^bind.*${OS_PUBLIC_IP}:35357.*$/d' ${KEYSTONE_HAPROXY_CONFIG_PATH}"    
+    done
+    message "Restart haproxy"
+    ssh ${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
+    ssh ${CONTROLLER_HOST} "pcs resource enable p_haproxy --wait"
 }
 
 cleanup_cloud() {
@@ -47,6 +59,8 @@ cleanup_cloud() {
 
     message "Delete the uploaded CirrOS image"
     remote_cli glance image-delete cirros-${CIRROS_VERSION}-x86_64 || true
+
+    restore_keystone_haproxy_conf
 
     message "Cleanup is done!"
 }

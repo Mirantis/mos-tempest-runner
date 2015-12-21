@@ -1,0 +1,7 @@
+# BOTO
+- tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest.test_create_and_get_delete_bucket[id-4678525d-8da0-4518-81c1-f1f67d595b00]
+- tempest.thirdparty.boto.test_s3_objects.S3BucketsTest.test_create_get_delete_object[id-4eea567a-b46a-405b-a475-6097e1faebde]
+- tearDownClass (tempest.thirdparty.boto.test_s3_buckets.S3BucketsTest)
+# Keystone
+- tempest.api.identity.admin.v3.test_tokens.TokensV3TestJSON.test_rescope_token[id-565fa210-1da1-4563-999b-f7b5b67cf112]
+- tempest.api.identity.admin.v3.test_users.UsersV3TestJSON.test_update_user_password[id-2d223a0e-e457-4a70-9fb1-febe027a0ff9]
