@@ -5,3 +5,41 @@
 # Keystone
 - tempest.api.identity.admin.v3.test_tokens.TokensV3TestJSON.test_rescope_token[id-565fa210-1da1-4563-999b-f7b5b67cf112]
 - tempest.api.identity.admin.v3.test_users.UsersV3TestJSON.test_update_user_password[id-2d223a0e-e457-4a70-9fb1-febe027a0ff9]
+# Cinder 
+- tempest.api.volume.admin.test_volume_quotas.BaseVolumeQuotasAdminV2TestJSON.test_delete_quota[id-874b35a9-51f1-4258-bec5-cd561b6690d3]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.VolumeQuotasAdminV1TestJSON.test_list_default_quotas[id-2be020a2-5fdd-423d-8d35-a7ffbc36e9f7]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.BaseVolumeQuotasAdminV2TestJSON.test_list_default_quotas[id-2be020a2-5fdd-423d-8d35-a7ffbc36e9f7]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.BaseVolumeQuotasAdminV2TestJSON.test_list_quotas[id-59eada70-403c-4cef-a2a3-a8ce2f1b07a0]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.VolumeQuotasAdminV1TestJSON.test_list_quotas[id-59eada70-403c-4cef-a2a3-a8ce2f1b07a0]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.BaseVolumeQuotasAdminV2TestJSON.test_update_all_quota_resources_for_tenant[id-3d45c99e-cc42-4424-a56e-5cbd212b63a6]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.VolumeQuotasAdminV1TestJSON.test_delete_quota[id-874b35a9-51f1-4258-bec5-cd561b6690d3]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.BaseVolumeQuotasAdminV2TestJSON.test_quota_usage[id-ae8b6091-48ad-4bfa-a188-bbf5cc02115f]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.BaseVolumeQuotasAdminV2TestJSON.test_show_quota_usage[id-18c51ae9-cb03-48fc-b234-14a19374dbed]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.VolumeQuotasAdminV1TestJSON.test_quota_usage[id-ae8b6091-48ad-4bfa-a188-bbf5cc02115f]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas_negative.BaseVolumeQuotasNegativeV2TestJSON.test_quota_volume_gigabytes[id-2dc27eee-8659-4298-b900-169d71a91374,negative]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.VolumeQuotasAdminV1TestJSON.test_update_all_quota_resources_for_tenant[id-3d45c99e-cc42-4424-a56e-5cbd212b63a6]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas.VolumeQuotasAdminV1TestJSON.test_show_quota_usage[id-18c51ae9-cb03-48fc-b234-14a19374dbed]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas_negative.VolumeQuotasNegativeV1TestJSON.test_quota_volumes[id-bf544854-d62a-47f2-a681-90f7a47d86b6,negative]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas_negative.VolumeQuotasNegativeV1TestJSON.test_quota_volume_gigabytes[id-2dc27eee-8659-4298-b900-169d71a91374,negative]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas_negative.VolumeQuotasNegativeV1TestJSON.test_quota_volume_snapshots[id-02bbf63f-6c05-4357-9d98-2926a94064ff,negative]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas_negative.BaseVolumeQuotasNegativeV2TestJSON.test_quota_volume_snapshots[id-02bbf63f-6c05-4357-9d98-2926a94064ff,negative]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640
+- tempest.api.volume.admin.test_volume_quotas_negative.BaseVolumeQuotasNegativeV2TestJSON.test_quota_volumes[id-bf544854-d62a-47f2-a681-90f7a47d86b6,negative]
+    Fail because of https://bugs.launchpad.net/fuel/+bug/1521640 
+
