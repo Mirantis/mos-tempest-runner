@@ -28,7 +28,7 @@ restore_keystone_haproxy_conf() {
     message "Restore keystone haproxy conf"
     local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
     for controller_node_id in ${controller_node_ids}; do
-        ssh node-${controller_node_id} "sed -i '/^bind.*${OS_PUBLIC_IP}:35357.*$/d' ${KEYSTONE_HAPROXY_CONFIG_PATH}"    
+        ssh node-${controller_node_id} "sed -i '/.*bind.*${OS_PUBLIC_IP}:35357.*/d' ${KEYSTONE_HAPROXY_CONFIG_PATH}"
     done
     message "Restart haproxy"
     ssh ${CONTROLLER_HOST} "pcs resource disable p_haproxy --wait"
