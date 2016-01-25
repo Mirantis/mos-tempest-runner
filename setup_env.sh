@@ -58,12 +58,10 @@ install_python27_pip_virtualenv() {
 init_cluster_variables() {
     message "Initialize cluster variables"
 
-    local controller_host_id="$(fuel node "$@" | grep controller | awk '{print $1}' | head -1)"
-    CONTROLLER_HOST="node-${controller_host_id}"
+    CONTROLLER_HOST="$(fuel node "$@" | grep controller | awk -F\| '{print $5}' | head -1 | sed -e s/[[:space:]]//g)"
     message "Controller host is '${CONTROLLER_HOST}'"
 
-    local compute_host_id="$(fuel node "$@" | grep compute | awk '{print $1}' | head -1)"
-    COMPUTE_HOST="node-${compute_host_id}"
+    COMPUTE_HOST="$(fuel node "$@" | grep compute | awk -F\| '{print $5}' | head -1 | sed -e s/[[:space:]]//g)"
     message "Compute host is '${COMPUTE_HOST}'"
 
     FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}' | sed "s/'//g")"
@@ -213,13 +211,14 @@ add_public_bind_to_keystone_haproxy_conf_for_admin_port() {
     # to make haproxy listen to Keystone admin port 35357 on interface with public IP
     message "Add public bind to Keystone haproxy config for admin port on all controllers"
     if [ ! "$(ssh ${CONTROLLER_HOST} "grep ${OS_PUBLIC_IP}:35357 ${KEYSTONE_HAPROXY_CONFIG_PATH}")" ]; then
-        local controller_node_ids=$(fuel node "$@" | grep controller | awk '{print $1}')
+        local controller_hosts=$(fuel node "$@" | grep controller | awk -F\| '{print $5}' | sed -e s/[[:space:]]//g)
         local bind_string="  bind ${OS_PUBLIC_IP}:35357"
         if [ "${TLS_ENABLED}" = "yes" ]; then
             bind_string="  bind ${OS_PUBLIC_IP}:35357 ssl crt ${REMOTE_CA_CERT}"
         fi
-        for controller_node_id in ${controller_node_ids}; do
-            ssh node-${controller_node_id} "echo ${bind_string} >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
+
+        for controller_node in ${controller_hosts}; do
+            ssh ${controller_node} "echo ${bind_string} >> ${KEYSTONE_HAPROXY_CONFIG_PATH}"
         done
 
         message "Restart haproxy"
