@@ -66,3 +66,8 @@ cleanup_cloud() {
 }
 
 cleanup_cloud
+
+# cleanup master node repositories:
+rm -f /etc/yum.repos.d/CentOS-Base.repo
+yum clean all
+
