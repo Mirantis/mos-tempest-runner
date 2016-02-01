@@ -19,6 +19,7 @@ install_system_requirements() {
     yum -y install libxml2-devel
     yum -y install libxslt-devel
     yum -y install python-devel
+    yum -y install python-pip
 }
 
 install_python27_pip_virtualenv() {
