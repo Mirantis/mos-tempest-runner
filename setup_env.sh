@@ -68,6 +68,11 @@ init_cluster_variables() {
     FUEL_RELEASE="$(fuel --fuel-version 2>&1 | grep -e ^release: | awk '{print $2}' | sed "s/'//g")"
     message "Fuel release is ${FUEL_RELEASE}"
 
+    case ${FUEL_RELEASE} in
+        "7.0") TEMPEST_COMMIT_ID="c5bb7663b618a91b15d379fb5b2550e238566ce6";;
+        "8.0") TEMPEST_COMMIT_ID="9ccf77af488c3b6464356b6fab106ec78e3b7c51";;
+    esac
+
     OS_PUBLIC_AUTH_URL="$(ssh ${CONTROLLER_HOST} ". openrc; keystone catalog --service identity 2>/dev/null | grep publicURL | awk '{print \$4}'")"
     OS_PUBLIC_IP="$(ssh ${CONTROLLER_HOST} "grep -w public_vip /etc/hiera/globals.yaml | awk '{print \$2}' | sed 's/\"//g'")"
     message "OS_PUBLIC_AUTH_URL = ${OS_PUBLIC_AUTH_URL}"
