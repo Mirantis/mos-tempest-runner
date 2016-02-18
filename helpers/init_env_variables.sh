@@ -9,7 +9,7 @@ TEMPEST_REPORTS_DIR="${DEST}/tempest-reports"
 PYTHON_VERSION="${PYTHON_VERSION:-2.7.9}"
 PYTHON_LOCATION="https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz"
 
-PIP_LOCATION="https://raw.github.com/pypa/pip/master/contrib/get-pip.py"
+PIP_LOCATION="https://bootstrap.pypa.io/get-pip.py"
 
 CIRROS_VERSION="${CIRROS_VERSION:-0.3.2}"
 CIRROS_UEC_IMAGE_URL="http://download.cirros-cloud.net/${CIRROS_VERSION}/cirros-${CIRROS_VERSION}-x86_64-uec.tar.gz"
