@@ -155,6 +155,7 @@ install_tempest() {
     git fetch https://review.openstack.org/openstack/tempest refs/changes/04/192204/14 && git cherry-pick FETCH_HEAD || true
 
     ${VIRTUALENV_DIR}/bin/pip install -U -r ${tempest_dir}/requirements.txt
+    ${VIRTUALENV_DIR}/bin/pip install oslo.log==1.1.0 --upgrade
     message "Tempest has been installed into ${tempest_dir}"
 
     cp ${TOP_DIR}/tempest/configure_tempest.sh ${VIRTUALENV_DIR}/bin/configure_tempest
